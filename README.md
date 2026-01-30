@@ -44,3 +44,11 @@
 * [Intro to Database Design](https://www.youtube.com/watch?v=5RpUmDEsn1k)
 * [AWS RDS](https://www.youtube.com/watch?v=I_fTQTsz2nQ)
 * [Swagger Documentation Generator (I haven't tried this, so if it doesn't work we'll just do it manually. This is a good use case for AI)](https://www.youtube.com/watch?v=Ck-CoNNn89g)
+## Timeline
+*this is subject to change*
+* **Week 1:** PostgreSQL schema design, Express server initialization
+* **Week 2:** Authentication and begining to set up token economy/market logic
+* **Week 3:** Prediction market core logic
+* **Week 4:** Real time features (sockets)
+* **Week 5:** Stretch goals and testing
+* **Week 6:** Containerization and deployment
