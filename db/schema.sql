@@ -1,1 +1,7 @@
-
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    token_balance INTEGER NOT NULL DEFAULT 500,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
