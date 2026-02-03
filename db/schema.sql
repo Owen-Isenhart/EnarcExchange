@@ -1,5 +1,6 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
+    -- restricted to only those with @utdallas.edu emails
     email TEXT UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@utdallas\.edu$'),
 	username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
