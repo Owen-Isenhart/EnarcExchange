@@ -44,6 +44,10 @@
 * [Intro to Database Design](https://www.youtube.com/watch?v=5RpUmDEsn1k)
 * [AWS RDS](https://www.youtube.com/watch?v=I_fTQTsz2nQ)
 * [Swagger Documentation Generator (I haven't tried this, so if it doesn't work we'll just do it manually. This is a good use case for AI)](https://www.youtube.com/watch?v=Ck-CoNNn89g)
+* [LMSR Primer 1](http://blog.oddhead.com/2006/10/30/implementing-hansons-market-maker/)
+* [LMSR Primer 2](https://gnosis-pm-js.readthedocs.io/en/v1.3.0/lmsr-primer.html)
+* [Example LMSR JS Implementation](https://github.com/cdetrio/prediction-market-lmsr)
+* [LMSR demo](https://cdetr.io/prediction-market-lmsr/index.html)
 ## Timeline
 *this is subject to change*
 * **Week 1:** PostgreSQL schema design, Express server initialization
