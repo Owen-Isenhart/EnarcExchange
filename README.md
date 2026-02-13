@@ -48,6 +48,7 @@
 * [LMSR Primer 2](https://gnosis-pm-js.readthedocs.io/en/v1.3.0/lmsr-primer.html)
 * [Example LMSR JS Implementation](https://github.com/cdetrio/prediction-market-lmsr)
 * [LMSR demo](https://cdetr.io/prediction-market-lmsr/index.html)
+* [System Design](https://www.youtube.com/watch?v=BTjxUS_PylA)
 ## Timeline
 *this is subject to change*
 * **Week 1:** PostgreSQL schema design, Express server initialization
