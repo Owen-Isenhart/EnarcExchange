@@ -13,6 +13,7 @@ const betRoutes = require("./routes/bets");
 const usersRoutes = require("./routes/users");
 const transactionsRoutes = require("./routes/transactions");
 const outcomesRoutes = require("./routes/outcomes");
+const pricesRoutes = require("./routes/prices");
 const pool = require("./config/db");
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/bets", betRoutes);
 app.use("/users", usersRoutes);
 app.use("/transactions", transactionsRoutes);
 app.use("/outcomes", outcomesRoutes);
+app.use("/prices", pricesRoutes);
 
 if (fs.existsSync(swaggerOutputPath)) {
     const swaggerDocument = require(swaggerOutputPath);
