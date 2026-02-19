@@ -1,74 +1,154 @@
-const db = require("../config/db");
-const { addDays } = require('date-fns');
-const futureDate = addDays(new Date(), 30);
-const now = new Date();
-
+const validators = require("../utils/validators");
+const { getPaginationParams, getPaginationResponse } = require("../utils/pagination");
+const pricesService = require("../services/prices.service");
 
 const getPrices = async (req, res) => {
-  try{
-    const price_history = await db.query('SELECT * FROM price_history');
-    res.status(200).json(price_history.rows);
-  }
-  catch(err){
+  try {
+    const { page, limit, offset } = getPaginationParams(req);
+    const { rows, total } = await pricesService.getAllPrices(limit, offset);
+    res.status(200).json(getPaginationResponse(rows, total, page, limit));
+  } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server Error")
+    res.status(500).json({ error: "Server error" });
   }
-} 
+};
 
-const getPricesByID = async (req, res) => {
-    const id = parseInt(req.params.id);
-    try{
-        const price_history = await db.query('SELECT * FROM price_history WHERE id = $1', [id]) ;
-        res.status(200).json(price_history.rows);
-    }
-    catch(err){
-        res.status(500).send("Error Finding Price")
-    }
-} 
+const getPriceById = async (req, res) => {
+  const id = parseInt(req.params.id);
 
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid price ID" });
+  }
+
+  try {
+    const price = await pricesService.getPriceById(id);
+
+    if (!price) {
+      return res.status(404).json({ error: "Price record not found" });
+    }
+
+    res.status(200).json(price);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const getOutcomePriceHistory = async (req, res) => {
+  const outcomeId = parseInt(req.params.outcomeId);
+
+  if (!Number.isInteger(outcomeId) || outcomeId <= 0) {
+    return res.status(400).json({ error: "Invalid outcome ID" });
+  }
+
+  try {
+    const { page, limit, offset } = getPaginationParams(req);
+
+    const outcomeExists = await pricesService.outcomeExists(outcomeId);
+    if (!outcomeExists) {
+      return res.status(404).json({ error: "Outcome not found" });
+    }
+
+    const { rows, total } = await pricesService.getOutcomePriceHistory(outcomeId, limit, offset);
+    res.status(200).json(getPaginationResponse(rows, total, page, limit));
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+const getLatestPrices = async (req, res) => {
+  try {
+    const prices = await pricesService.getLatestPrices();
+    res.status(200).json(prices);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 const createPrice = async (req, res) => {
-    const {outcomeID, price} = req.body;
-    try{
-        const price_history = await db.query('INSERT INTO price_history (outcome_id, price) VALUES ($1, $2) RETURNING *', [outcomeID, price]);
-        res.status(200).send(`Price added with ID: ${price_history.rows[0].id}`);
+  const { outcome_id, price } = req.body;
+
+  if (!outcome_id || !Number.isInteger(outcome_id) || outcome_id <= 0) {
+    return res.status(400).json({ error: "Valid outcome_id is required" });
+  }
+
+  if (price === undefined || price === null || !validators.probability(price)) {
+    return res.status(400).json({
+      error: "price must be a number between 0 and 1",
+    });
+  }
+
+  try {
+    const outcomeExists = await pricesService.outcomeExists(outcome_id);
+    if (!outcomeExists) {
+      return res.status(404).json({ error: "Outcome not found" });
     }
-    catch(err){
-        console.error(err);
-        res.status(500).send('Error creating outcome');
-    }
-}
+
+    const priceRecord = await pricesService.createPrice(outcome_id, price);
+    res.status(201).json(priceRecord);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creating price record" });
+  }
+};
 
 const updatePrice = async (req, res) => {
-    const id = parseInt(req.params.id);
-     const {outcomeID, price} = req.body;
-    try{
-        await db.query('UPDATE price_history SET outcome_id  = $1, price = $2 WHERE id = $3', [outcomeID, price, id]);
-        res.status(200).send(`Price modified with ID: ${id}`);
+  const id = parseInt(req.params.id);
+  const { price } = req.body;
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid price ID" });
+  }
+
+  if (price === undefined || price === null || !validators.probability(price)) {
+    return res.status(400).json({
+      error: "price must be a number between 0 and 1",
+    });
+  }
+
+  try {
+    const priceExists = await pricesService.priceExists(id);
+    if (!priceExists) {
+      return res.status(404).json({ error: "Price record not found" });
     }
-    catch(err){
-        console.error(err);
-        res.status(500).send('Error updating outcome');
-    }
-}
+
+    const result = await pricesService.updatePrice(id, price);
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error updating price" });
+  }
+};
 
 const deletePrice = async (req, res) => {
-    const id = parseInt(req.params.id);
-    try{
-        await db.query('DELETE FROM price_history WHERE id = $1', [id]);
-        res.status(200).send(`Price with ID: ${id} has been deleted`);
+  const id = parseInt(req.params.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "Invalid price ID" });
+  }
+
+  try {
+    const result = await pricesService.deletePrice(id);
+
+    if (!result) {
+      return res.status(404).json({ error: "Price record not found" });
     }
-    catch(err){
-        console.error(err);
-        res.status(500).send('Error deleting price_history')
-    }
-}
+
+    res.status(200).json({ message: "Price record deleted successfully", id: result.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error deleting price record" });
+  }
+};
 
 module.exports = {
-    getPrices,
-    getPricesByID,
-    createPrice,
-    updatePrice,
-    deletePrice
-
-}
+  getPrices,
+  getPriceById,
+  getOutcomePriceHistory,
+  getLatestPrices,
+  createPrice,
+  updatePrice,
+  deletePrice,
+};
