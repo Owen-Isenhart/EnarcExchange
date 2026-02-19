@@ -22,6 +22,21 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// root
+app.get("/", (_req, res) =>
+  res.json({
+    name: "Enarc Exchange",
+    description: "Prediction market for UTD — bet with Temoc Tokens",
+    links: {
+      health: "/health",
+      apiDocs: "/api-docs",
+      auth: "/api/auth",
+      markets: "/markets",
+      bets: "/bets",
+    },
+  })
+);
+
 // health check
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 

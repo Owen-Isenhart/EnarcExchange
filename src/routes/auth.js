@@ -12,6 +12,11 @@ const UTD_EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@utdallas\.edu$/;
 
 // POST /api/auth/signup
 router.post("/signup", async (req, res) => {
+  if (!process.env.JWT_SECRET) {
+    console.error("Signup: JWT_SECRET is not set in .env");
+    return res.status(500).json({ error: "Server misconfiguration: JWT_SECRET missing" });
+  }
+
   const { email, username, password } = req.body;
 
   if (!email || !username || !password) {
@@ -56,8 +61,12 @@ router.post("/signup", async (req, res) => {
       // unique violation
       return res.status(409).json({ error: "Email or username already exists" });
     }
-    console.error("Signup error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Signup error:", err.message || err);
+    console.error("Signup error code:", err.code);
+    return res.status(500).json({
+      error: "Internal server error",
+      message: process.env.NODE_ENV !== "production" ? err.message : undefined,
+    });
   }
 });
 
