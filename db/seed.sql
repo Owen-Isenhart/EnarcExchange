@@ -12,11 +12,11 @@ INSERT INTO users (id, email, username, password_hash, token_balance) VALUES
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 
 -- 3. MARKETS
-INSERT INTO markets (id, name, description, start_time, end_time, status, liquidity_parameter)
+INSERT INTO markets (id, created_by, name, description, start_time, end_time, status, liquidity_parameter)
 VALUES 
-(1, 'Average CS 1337 Grade', 'Will the average grade for all CS 1337 sections be an A- or higher?', NOW(), NOW() + INTERVAL '30 days', 'open', 100.0),
-(2, 'Student Union Construction', 'Will the SU expansion be completed by the start of Fall 2026?', NOW(), '2026-08-01 00:00:00', 'open', 150.0),
-(3, 'Dining Hall West: Taco Tuesday', 'Will DHW serve street tacos this coming Tuesday?', NOW() - INTERVAL '5 days', NOW() - INTERVAL '1 day', 'resolved', 100.0);
+(1, 2, 'Average CS 1337 Grade', 'Will the average grade for all CS 1337 sections be an A- or higher?', NOW(), NOW() + INTERVAL '30 days', 'open', 100.0),
+(2, 1, 'Student Union Construction', 'Will the SU expansion be completed by the start of Fall 2026?', NOW(), '2026-08-01 00:00:00', 'open', 150.0),
+(3, 3, 'Dining Hall West: Taco Tuesday', 'Will DHW serve street tacos this coming Tuesday?', NOW() - INTERVAL '5 days', NOW() - INTERVAL '1 day', 'resolved', 100.0);
 
 SELECT setval('markets_id_seq', (SELECT MAX(id) FROM markets));
 

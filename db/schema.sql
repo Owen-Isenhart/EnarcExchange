@@ -5,6 +5,7 @@ CREATE TABLE users (
 	username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     token_balance INTEGER NOT NULL DEFAULT 500,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -12,6 +13,7 @@ CREATE TABLE markets (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
+    created_by INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
 	liquidity_parameter FLOAT DEFAULT 100.0, -- needed for LMSR
 	winning_outcome_id INT, -- needed for LMSR
     start_time TIMESTAMP NOT NULL,
