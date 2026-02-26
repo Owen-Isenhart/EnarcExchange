@@ -3,6 +3,14 @@ process.env.JWT_SECRET = "test-secret-key";
 const express = require("express");
 const request = require("supertest");
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
+
 jest.mock("../src/services/auth.service");
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");

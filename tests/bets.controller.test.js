@@ -10,6 +10,14 @@ const {
   createBet,
 } = require("../src/controllers/bets.controller");
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
+
 // Factory helpers
 const mockRes = () => {
   const res = {};

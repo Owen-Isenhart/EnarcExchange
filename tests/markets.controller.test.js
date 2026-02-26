@@ -9,6 +9,14 @@ const {
   deleteMarket,
 } = require("../src/controllers/markets.controller");
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
+
 const mockRes = () => {
   const res = {};
   res.status = jest.fn().mockReturnThis();

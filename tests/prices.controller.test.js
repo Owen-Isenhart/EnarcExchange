@@ -12,6 +12,14 @@ const {
   deletePrice,
 } = require("../src/controllers/price.controller");
 
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterAll(() => {
+  console.error.mockRestore();
+});
+
 const mockRes = () => {
   const res = {};
   res.status = jest.fn().mockReturnThis();
