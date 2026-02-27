@@ -95,6 +95,31 @@ const marketsService = {
     );
     return result.rows[0]?.status || null;
   },
+
+  /** For LMSR: market with outcomes and quantities (b, outcomes with id, description, quantity) */
+  getMarketWithOutcomesForLmsr: async (marketId) => {
+    const marketResult = await pool.query(
+      "SELECT id, liquidity_parameter, status FROM markets WHERE id = $1",
+      [marketId]
+    );
+    if (marketResult.rows.length === 0) return null;
+    const outcomesResult = await pool.query(
+      `SELECT id, description, COALESCE(quantity, 0) AS quantity
+       FROM market_outcomes
+       WHERE market_id = $1
+       ORDER BY id`,
+      [marketId]
+    );
+    return {
+      ...marketResult.rows[0],
+      liquidity_parameter: parseFloat(marketResult.rows[0].liquidity_parameter) || 100,
+      outcomes: outcomesResult.rows.map((r) => ({
+        id: r.id,
+        description: r.description,
+        quantity: parseFloat(r.quantity) || 0,
+      })),
+    };
+  },
 };
 
 module.exports = marketsService;

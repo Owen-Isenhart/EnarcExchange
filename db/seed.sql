@@ -40,10 +40,10 @@ INSERT INTO price_history (outcome_id, price) VALUES
 (3, 0.20), (4, 0.80), -- Construction leans No (classic UTD)
 (5, 1.00), (6, 0.00); -- Resolved market prices (Winner = 1.0)
 
--- 7. BETS
-INSERT INTO bets (user_id, outcome_id, amount, payout_amount, is_settled) VALUES 
-(4, 1, 50, 0, FALSE),       -- CometTrader active bet
-(1, 5, 100, 200, TRUE);     -- Temoc won 200 on Tacos
+-- 7. BETS (amount = tokens paid, shares = LMSR shares bought)
+INSERT INTO bets (user_id, outcome_id, amount, shares, payout_amount, is_settled) VALUES 
+(4, 1, 50, 0, 0, FALSE),        -- CometTrader active bet
+(1, 5, 100, 0, 200, TRUE);      -- Temoc won 200 on Tacos
 
 -- 8. TRANSACTIONS (Audit log for token_balance)
 INSERT INTO transactions (user_id, amount, reason) VALUES
