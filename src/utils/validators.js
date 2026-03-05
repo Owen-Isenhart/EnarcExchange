@@ -30,6 +30,12 @@ const validators = {
     const num = Number(value);
     return typeof num === "number" && num >= 0 && num <= 1;
   },
+
+  /** For LMSR liquidity_parameter (b): must be a positive number (e.g. 100, 150) */
+  positiveNumber: (value) => {
+    const num = Number(value);
+    return typeof num === "number" && num > 0 && isFinite(num);
+  },
 };
 
 module.exports = validators;

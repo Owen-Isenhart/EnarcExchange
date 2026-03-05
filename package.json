@@ -25,6 +25,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.18.0",
+    "socket.io": "^4.8.3",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   },

@@ -14,6 +14,11 @@ const SALT_ROUNDS = 10;
 router.post(
   "/signup",
   asyncHandler(async (req, res) => {
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({
+        error: "Request body must be JSON (Content-Type: application/json). email, username, and password are required.",
+      });
+    }
     const { email, username, password } = req.body;
 
     // Validate inputs
@@ -71,7 +76,8 @@ router.post(
       return res.status(201).json({ token, user });
     } catch (err) {
       console.error("Signup error:", err);
-      return res.status(500).json({ error: "Internal server error" });
+      const message = process.env.NODE_ENV === "production" ? "Internal server error" : err.message;
+      return res.status(500).json({ error: message });
     }
   })
 );
@@ -80,6 +86,11 @@ router.post(
 router.post(
   "/login",
   asyncHandler(async (req, res) => {
+    if (!req.body || typeof req.body !== "object") {
+      return res.status(400).json({
+        error: "Request body must be JSON (Content-Type: application/json). email and password are required.",
+      });
+    }
     const { email, password } = req.body;
 
     if (!email || !password) {
