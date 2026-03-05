@@ -10,6 +10,7 @@ const {
   deleteMarket,
 } = require("../controllers/markets.controller");
 
+
 const router = Router();
 
 /**
