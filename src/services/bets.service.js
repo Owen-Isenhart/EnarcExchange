@@ -34,10 +34,11 @@ const betsService = {
 
   getUserBets: async (userId, limit, offset) => {
     const bets = await pool.query(
-      `SELECT b.*, u.username, mo.description as outcome_description 
+      `SELECT b.*, u.username, mo.description as outcome_description, m.name as market_name
        FROM bets b 
        JOIN users u ON b.user_id = u.id 
        JOIN market_outcomes mo ON b.outcome_id = mo.id 
+       JOIN markets m ON mo.market_id = m.id
        WHERE b.user_id = $1 
        ORDER BY b.created_at DESC 
        LIMIT $2 OFFSET $3`,
@@ -57,10 +58,11 @@ const betsService = {
 
   getMarketBets: async (marketId, limit, offset) => {
     const bets = await pool.query(
-      `SELECT b.*, u.username, mo.description as outcome_description 
+      `SELECT b.*, u.username, mo.description as outcome_description, m.name as market_name
        FROM bets b 
        JOIN users u ON b.user_id = u.id 
        JOIN market_outcomes mo ON b.outcome_id = mo.id 
+       JOIN markets m ON mo.market_id = m.id
        WHERE mo.market_id = $1 
        ORDER BY b.created_at DESC 
        LIMIT $2 OFFSET $3`,

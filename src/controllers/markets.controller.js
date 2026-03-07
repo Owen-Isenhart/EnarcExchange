@@ -75,7 +75,7 @@ const getMarketQuote = async (req, res) => {
       return res.status(500).json({ error: "Server error" });
     }
   }
-  if (amount == null || !Number.isInteger(amount) || amount <= 0) {
+  if (amount == null || !Number.isFinite(amount) || amount <= 0) {
     return res.status(400).json({ error: "Query amount (tokens) or shares is required and must be positive" });
   }
   try {

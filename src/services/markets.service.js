@@ -8,7 +8,7 @@ const marketsService = {
               COALESCE(u.username, '[deleted]') AS created_by_username
        FROM markets m
        LEFT JOIN users u ON m.created_by = u.id
-       ORDER BY m.created_at DESC
+       ORDER BY (CASE WHEN m.status = 'open' THEN 0 ELSE 1 END), m.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );

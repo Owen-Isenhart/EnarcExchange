@@ -50,8 +50,8 @@ const lmsrService = {
     const q = data.outcomes.map((o) => o.quantity);
     const b = data.liquidity_parameter;
     const { shares, cost } = sharesForCost(q, b, outcomeIndex, costAmount);
-    const qNew = q.slice();
-    qNew[outcomeIndex] += shares;
+    const qNew = q.map((qi) => new Decimal(qi || 0));
+    qNew[outcomeIndex] = qNew[outcomeIndex].plus(shares);
     const newPrices = marginalPrices(qNew, b);
     const currentPrices = marginalPrices(q, b);
     return {
@@ -73,8 +73,8 @@ const lmsrService = {
     const q = data.outcomes.map((o) => o.quantity);
     const b = data.liquidity_parameter;
     const costAmount = costToBuy(q, b, outcomeIndex, sharesAmount);
-    const qNew = q.slice();
-    qNew[outcomeIndex] += sharesAmount;
+    const qNew = q.map((qi) => new Decimal(qi || 0));
+    qNew[outcomeIndex] = qNew[outcomeIndex].plus(sharesAmount);
     const newPrices = marginalPrices(qNew, b);
     const currentPrices = marginalPrices(q, b);
     return {
@@ -112,7 +112,7 @@ const lmsrService = {
     const run = async (client) => {
       await client.query(
         "UPDATE market_outcomes SET quantity = $1 WHERE id = $2",
-        [newQ[outcomeIndex], outcomeId]
+        [newQ[outcomeIndex].toString(), outcomeId]
       );
       for (let i = 0; i < data.outcomes.length; i++) {
         await client.query(
@@ -187,7 +187,7 @@ const lmsrService = {
     const run = async (client) => {
       await client.query(
         "UPDATE market_outcomes SET quantity = $1 WHERE id = $2",
-        [newQ[outcomeIndex], outcomeId]
+        [newQ[outcomeIndex].toString(), outcomeId]
       );
       for (let i = 0; i < data.outcomes.length; i++) {
         await client.query(
