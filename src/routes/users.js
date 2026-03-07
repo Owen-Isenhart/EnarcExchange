@@ -1,13 +1,31 @@
 const { Router } = require("express");
 const asyncHandler = require("../utils/asyncHandler");
+const authenticate = require("../middleware/auth");
 const {
   getUsers,
   getUserById,
   getUserByUsername,
   getUserStats,
+  getMyPositions,
+  getPositionsByUserId,
 } = require("../controllers/users.controller");
 
 const router = Router();
+
+/**
+ * #swagger.tags = ['Users']
+ * #swagger.summary = 'Get my positions (LMSR shares per outcome)'
+ * #swagger.description = 'Auth required. Optional query: market_id'
+ */
+router.get("/me/positions", authenticate, asyncHandler(getMyPositions));
+
+/**
+ * #swagger.tags = ['Users']
+ * #swagger.summary = 'Get user positions by user ID'
+ * #swagger.parameters['userId'] = { in: 'path', required: true }
+ * #swagger.parameters['market_id'] = { in: 'query' }
+ */
+router.get("/:userId/positions", asyncHandler(getPositionsByUserId));
 
 /**
  * #swagger.tags = ['Users']

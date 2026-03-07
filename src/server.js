@@ -1,3 +1,4 @@
+const http = require("http");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -5,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const fs = require("fs");
+const { Server } = require("socket.io");
 
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
@@ -44,7 +46,7 @@ app.use(express.json());
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, 
+  max: process.env.NODE_ENV === "production" ? 10 : 50,
   message: "Too many login/signup attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
@@ -59,6 +61,12 @@ app.get("/", (_req, res) =>
       apiDocs: "/api-docs",
       auth: "/api/auth",
       markets: "/api/markets",
+      "markets/:id/prices": "/api/markets/:id/prices (LMSR)",
+      "markets/:id/quote": "/api/markets/:id/quote?outcome_id=&amount=",
+      "markets/:id/resolve": "POST /api/markets/:id/resolve (admin, body: { winning_outcome_id })",
+      "markets/:id/seed": "POST /api/markets/:id/seed (admin, body: { quantities })",
+      "users/me/positions": "GET /api/users/me/positions (auth)",
+      "bets/sell": "POST /api/bets/sell (auth, body: { outcome_id, shares })",
       bets: "/api/bets",
       users: "/api/users",
       transactions: "/api/transactions",
@@ -70,6 +78,13 @@ app.get("/", (_req, res) =>
 );
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
+app.get("/health/db", (_req, res) => {
+  pool
+    .query("SELECT NOW()")
+    .then((r) => res.json({ status: "ok", db: "connected", now: r.rows[0].now }))
+    .catch((err) => res.status(503).json({ status: "error", db: "disconnected", error: err.message }));
+});
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/markets", marketRoutes);
@@ -97,9 +112,23 @@ pool
   .query("SELECT NOW()")
   .then(() => {
     console.log("✓ Database connection verified");
-    app.listen(PORT, () => {
+    const server = http.createServer(app);
+    const io = new Server(server, { cors: { origin: "*" } });
+    app.set("io", io);
+
+    io.on("connection", (socket) => {
+      socket.on("market:subscribe", (marketId) => {
+        socket.join(`market:${marketId}`);
+      });
+      socket.on("market:unsubscribe", (marketId) => {
+        socket.leave(`market:${marketId}`);
+      });
+    });
+
+    server.listen(PORT, () => {
       console.log(`✓ Server running on port ${PORT}`);
       console.log(`✓ API docs available at http://localhost:${PORT}/api-docs`);
+      console.log(`✓ WebSocket (Socket.io) enabled`);
     });
   })
   .catch((err) => {

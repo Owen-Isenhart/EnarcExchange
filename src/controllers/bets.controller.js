@@ -83,8 +83,19 @@ const createBet = async (req, res) => {
   }
 
   try {
-    const bet = await betsService.createBet(userId, outcome_id, amount);
-    res.status(201).json(bet);
+    const result = await betsService.createBet(userId, outcome_id, amount);
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`market:${result.marketId}`).emit("market:prices", {
+        market_id: result.marketId,
+        prices: result.newPricesByOutcomeId,
+      });
+    }
+    res.status(201).json({
+      ...result.bet,
+      market_id: result.marketId,
+      new_prices: result.newPricesByOutcomeId,
+    });
   } catch (err) {
     console.error("Create bet error:", err);
     if (err.message === "User not found") {
@@ -99,7 +110,54 @@ const createBet = async (req, res) => {
     if (err.message === "Market is not open for betting") {
       return res.status(400).json({ error: "Cannot place bets on a closed or resolved market" });
     }
+    if (err.message === "Cost amount too small to buy any shares") {
+      return res.status(400).json({ error: err.message });
+    }
     res.status(500).json({ error: "Error creating bet" });
+  }
+};
+
+const createSell = async (req, res) => {
+  const userId = req.user.id;
+  const { outcome_id: outcomeId, shares } = req.body;
+
+  if (!outcomeId || !Number.isInteger(outcomeId) || outcomeId <= 0) {
+    return res.status(400).json({ error: "Valid outcome_id is required" });
+  }
+  const sharesNum = typeof shares === "number" ? shares : parseFloat(shares);
+  if (!Number.isFinite(sharesNum) || sharesNum <= 0) {
+    return res.status(400).json({ error: "shares must be a positive number" });
+  }
+
+  try {
+    const result = await betsService.createSell(userId, outcomeId, sharesNum);
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`market:${result.marketId}`).emit("market:prices", {
+        market_id: result.marketId,
+        prices: result.newPricesByOutcomeId,
+      });
+    }
+    res.status(201).json({
+      ...result.sell,
+      market_id: result.marketId,
+      new_prices: result.newPricesByOutcomeId,
+    });
+  } catch (err) {
+    if (err.message === "Outcome not found") {
+      return res.status(404).json({ error: "Outcome not found" });
+    }
+    if (err.message === "Market is not open for selling") {
+      return res.status(400).json({ error: "Market is not open for selling" });
+    }
+    if (err.message === "Insufficient shares to sell") {
+      return res.status(400).json({ error: "Insufficient shares to sell" });
+    }
+    if (err.message === "Invalid shares to sell" || err.message === "Sell would yield zero tokens") {
+      return res.status(400).json({ error: err.message });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Error selling shares" });
   }
 };
 
@@ -109,4 +167,5 @@ module.exports = {
   getUserBets,
   getMarketBets,
   createBet,
+  createSell,
 };

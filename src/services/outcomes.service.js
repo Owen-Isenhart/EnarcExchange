@@ -85,6 +85,14 @@ const outcomesService = {
     );
     return result.rows.length > 0;
   },
+
+  updateQuantity: async (outcomeId, quantity) => {
+    const result = await pool.query(
+      "UPDATE market_outcomes SET quantity = $1 WHERE id = $2 RETURNING id, quantity",
+      [quantity, outcomeId]
+    );
+    return result.rows[0] || null;
+  },
 };
 
 module.exports = outcomesService;

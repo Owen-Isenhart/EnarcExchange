@@ -96,6 +96,64 @@ const usersService = {
     );
     return result.rows.length > 0 && result.rows[0].is_admin;
   },
+
+  /** LMSR: user position = SUM(bets.shares) - SUM(sells.shares) per outcome. Optional marketId filter. */
+  getPositions: async (userId, marketId = null) => {
+    const params = [userId];
+    let marketClause = "";
+    if (marketId != null) {
+      params.push(marketId);
+      marketClause = " AND mo.market_id = $2";
+    }
+    const queryWithSells = `SELECT mo.id AS outcome_id, mo.market_id, mo.description AS outcome_description,
+              m.name AS market_name, m.status AS market_status,
+              COALESCE(SUM(b.shares), 0) - COALESCE(sell_agg.sold, 0) AS shares
+       FROM market_outcomes mo
+       JOIN markets m ON m.id = mo.market_id
+       LEFT JOIN bets b ON b.outcome_id = mo.id AND b.user_id = $1
+       LEFT JOIN (
+         SELECT outcome_id, SUM(shares) AS sold
+         FROM sells WHERE user_id = $1 GROUP BY outcome_id
+       ) sell_agg ON sell_agg.outcome_id = mo.id
+       WHERE 1=1 ${marketClause}
+       GROUP BY mo.id, mo.market_id, mo.description, m.name, m.status, sell_agg.sold
+       HAVING (COALESCE(SUM(b.shares), 0) - COALESCE(sell_agg.sold, 0)) > 0
+       ORDER BY mo.market_id, mo.id`;
+    const queryWithoutSells = `SELECT mo.id AS outcome_id, mo.market_id, mo.description AS outcome_description,
+              m.name AS market_name, m.status AS market_status,
+              COALESCE(SUM(b.shares), 0) AS shares
+       FROM market_outcomes mo
+       JOIN markets m ON m.id = mo.market_id
+       LEFT JOIN bets b ON b.outcome_id = mo.id AND b.user_id = $1
+       WHERE 1=1 ${marketClause}
+       GROUP BY mo.id, mo.market_id, mo.description, m.name, m.status
+       HAVING COALESCE(SUM(b.shares), 0) > 0
+       ORDER BY mo.market_id, mo.id`;
+    try {
+      const result = await pool.query(queryWithSells, params);
+      return result.rows.map((r) => ({
+        outcome_id: r.outcome_id,
+        market_id: r.market_id,
+        market_name: r.market_name,
+        market_status: r.market_status,
+        outcome_description: r.outcome_description,
+        shares: Math.round(parseFloat(r.shares) * 1e4) / 1e4,
+      }));
+    } catch (err) {
+      if (err.code === "42P01" || (err.message && err.message.includes("sells"))) {
+        const result = await pool.query(queryWithoutSells, params);
+        return result.rows.map((r) => ({
+          outcome_id: r.outcome_id,
+          market_id: r.market_id,
+          market_name: r.market_name,
+          market_status: r.market_status,
+          outcome_description: r.outcome_description,
+          shares: Math.round(parseFloat(r.shares) * 1e4) / 1e4,
+        }));
+      }
+      throw err;
+    }
+  },
 };
 
 module.exports = usersService;
