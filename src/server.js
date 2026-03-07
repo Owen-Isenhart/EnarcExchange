@@ -33,6 +33,7 @@ const usersRoutes = require("./routes/users");
 const transactionsRoutes = require("./routes/transactions");
 const outcomesRoutes = require("./routes/outcomes");
 const pricesRoutes = require("./routes/prices");
+const aiRoutes = require("./routes/ai");
 const errorHandler = require("./middleware/errorHandler");
 const pool = require("./config/db");
 
@@ -71,6 +72,7 @@ app.get("/", (_req, res) =>
       transactions: "/api/transactions",
       outcomes: "/api/outcomes",
       prices: "/api/prices",
+      ai: "/api/ai",
     },
   })
 );
@@ -91,6 +93,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/transactions", transactionsRoutes);
 app.use("/api/outcomes", outcomesRoutes);
 app.use("/api/prices", pricesRoutes);
+app.use("/api/ai", aiRoutes);
 
 if (fs.existsSync(swaggerOutputPath)) {
   const swaggerDocument = require(swaggerOutputPath);

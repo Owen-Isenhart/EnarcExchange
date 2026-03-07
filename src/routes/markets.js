@@ -14,6 +14,7 @@ const {
   seedMarket,
 } = require("../controllers/markets.controller");
 
+
 const router = Router();
 
 /**

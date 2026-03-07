@@ -1,6 +1,10 @@
 const validators = require("../utils/validators");
 const { getPaginationParams, getPaginationResponse } = require("../utils/pagination");
 const marketsService = require("../services/markets.service");
+const geminiService = require("../services/gemini.service");
+
+// Minimum number of open markets before AI auto-generation kicks in
+const MARKET_THRESHOLD = parseInt(process.env.MARKET_THRESHOLD) || 3;
 const lmsrService = require("../services/lmsr.service");
 
 const getMarkets = async (req, res) => {
@@ -217,6 +221,27 @@ const deleteMarket = async (req, res) => {
     }
 
     res.status(200).json({ message: "Market deleted successfully", id: result.id });
+
+    // Fire-and-forget: if open market count falls below threshold, auto-generate
+    geminiService.countOpenMarkets().then((openCount) => {
+      if (openCount < MARKET_THRESHOLD) {
+        const needed = MARKET_THRESHOLD - openCount;
+        console.log(
+          `[AI] Only ${openCount} open market(s) remain (threshold: ${MARKET_THRESHOLD}). ` +
+          `Auto-generating ${needed} market(s)...`
+        );
+        geminiService
+          .generateAndSaveMarkets(req.user.id, needed)
+          .then((created) => {
+            console.log(`[AI] Auto-generated ${created.length} market(s) successfully.`);
+          })
+          .catch((err) => {
+            console.error("[AI] Auto-generation failed:", err.message);
+          });
+      }
+    }).catch((err) => {
+      console.error("[AI] Market count check failed:", err.message);
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error deleting market" });
