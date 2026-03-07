@@ -365,6 +365,11 @@
             "name": "authorization",
             "in": "header",
             "type": "string"
+          },
+          {
+            "name": "x-idempotency-key",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
@@ -380,6 +385,11 @@
         "parameters": [
           {
             "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "x-idempotency-key",
             "in": "header",
             "type": "string"
           },
@@ -498,11 +508,16 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
         ],
         "responses": {
-          "default": {
-            "description": ""
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }

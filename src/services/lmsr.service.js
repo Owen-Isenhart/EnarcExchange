@@ -1,10 +1,19 @@
 const marketsService = require("./markets.service");
 const outcomesService = require("./outcomes.service");
 const pricesService = require("./prices.service");
-const { marginalPrices, sharesForCost, costToBuy, costToSell } = require("../utils/lmsr");
+const { marginalPrices, sharesForCost, costToBuy, costToSell, Decimal } = require("../utils/lmsr");
 const pool = require("../config/db");
 
-const round4 = (x) => Math.round(x * 1e4) / 1e4;
+/**
+ * Convert Decimal or number to 4 decimal places for API responses.
+ * Also converts strings returned from DB into numbers.
+ */
+const round4 = (x) => {
+  if (x instanceof Decimal || typeof x === "object") {
+    x = x.toNumber ? x.toNumber() : parseFloat(x);
+  }
+  return Math.round(x * 1e4) / 1e4;
+};
 
 const lmsrService = {
   /**
@@ -93,7 +102,7 @@ const lmsrService = {
     if (shares <= 0) throw new Error("Cost amount too small to buy any shares");
 
     const newQ = q.slice();
-    newQ[outcomeIndex] += shares;
+    newQ[outcomeIndex] = new Decimal(newQ[outcomeIndex] || 0).plus(shares);
     const newPrices = marginalPrices(newQ, b);
     const newPricesByOutcomeId = {};
     data.outcomes.forEach((o, i) => {
@@ -115,7 +124,14 @@ const lmsrService = {
 
     if (pgClient) {
       await run(pgClient);
-      return { shares: round4(shares), costUsed: round4(cost), newPricesByOutcomeId, marketId, outcomeIds: data.outcomes.map((o) => o.id) };
+      return { 
+        shares: shares.toString(), // Precise Decimal as string for storage
+        sharesRounded: round4(shares), // Rounded for API
+        costUsed: round4(cost), 
+        newPricesByOutcomeId, 
+        marketId, 
+        outcomeIds: data.outcomes.map((o) => o.id) 
+      };
     }
 
     const client = await pool.connect();
@@ -123,7 +139,14 @@ const lmsrService = {
       await client.query("BEGIN");
       await run(client);
       await client.query("COMMIT");
-      return { shares: round4(shares), costUsed: round4(cost), newPricesByOutcomeId, marketId, outcomeIds: data.outcomes.map((o) => o.id) };
+      return { 
+        shares: shares.toString(), // Precise Decimal as string for storage
+        sharesRounded: round4(shares), // Rounded for API
+        costUsed: round4(cost), 
+        newPricesByOutcomeId, 
+        marketId, 
+        outcomeIds: data.outcomes.map((o) => o.id) 
+      };
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;
@@ -134,7 +157,8 @@ const lmsrService = {
 
   /**
    * Apply a sell: decrease outcome quantity, credit user (tokens from costToSell), record price_history.
-   * If pgClient provided, uses it. Returns { tokensReceived, newPricesByOutcomeId, marketId }.
+   * If pgClient provided, uses it. Returns { tokensReceived (Decimal), newPricesByOutcomeId, marketId }.
+   * Note: tokensReceived is returned as a Decimal to preserve precision for storage.
    */
   applySellAndRecordPrices: async (marketId, outcomeId, shares, pgClient = null) => {
     const data = await marketsService.getMarketWithOutcomesForLmsr(marketId);
@@ -146,11 +170,14 @@ const lmsrService = {
     const currentQ = q[outcomeIndex] || 0;
     if (shares <= 0 || shares > currentQ) throw new Error("Invalid shares to sell");
     const costDelta = costToSell(q, b, outcomeIndex, shares); // negative = user receives
-    const tokensReceived = Math.round(Math.abs(costDelta));
-    if (tokensReceived <= 0) throw new Error("Sell would yield zero tokens");
+    
+    // tokensReceived is a Decimal representing the exact payout (including fractions)
+    const tokensReceived = costDelta.negated(); // Convert from cost (negative) to payout (positive)
+    
+    if (tokensReceived.lte(0)) throw new Error("Sell would yield zero tokens");
 
     const newQ = q.slice();
-    newQ[outcomeIndex] = currentQ - shares;
+    newQ[outcomeIndex] = new Decimal(currentQ).minus(shares);
     const newPrices = marginalPrices(newQ, b);
     const newPricesByOutcomeId = {};
     data.outcomes.forEach((o, i) => {

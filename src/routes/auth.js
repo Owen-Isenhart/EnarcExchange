@@ -68,7 +68,7 @@ router.post(
       const user = await authService.createUser(email, username, passwordHash);
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, is_admin: user.is_admin || false },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
@@ -112,7 +112,7 @@ router.post(
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, is_admin: user.is_admin || false },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );

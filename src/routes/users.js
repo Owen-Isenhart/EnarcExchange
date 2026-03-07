@@ -22,10 +22,11 @@ router.get("/me/positions", authenticate, asyncHandler(getMyPositions));
 /**
  * #swagger.tags = ['Users']
  * #swagger.summary = 'Get user positions by user ID'
+ * #swagger.description = 'Get LMSR share positions for a user (auth required for privacy)'
  * #swagger.parameters['userId'] = { in: 'path', required: true }
  * #swagger.parameters['market_id'] = { in: 'query' }
  */
-router.get("/:userId/positions", asyncHandler(getPositionsByUserId));
+router.get("/:userId/positions", authenticate, asyncHandler(getPositionsByUserId));
 
 /**
  * #swagger.tags = ['Users']

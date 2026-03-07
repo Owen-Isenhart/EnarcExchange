@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const authenticate = require("../middleware/auth");
+const idempotencyMiddleware = require("../middleware/idempotency");
 const asyncHandler = require("../utils/asyncHandler");
 const {
   getBets,
@@ -34,14 +35,14 @@ router.get("/", asyncHandler(getBets));
  * #swagger.responses[401] = { description: 'Unauthorized' }
  * #swagger.responses[500] = { description: 'Server error' }
  */
-router.post("/", authenticate, asyncHandler(createBet));
+router.post("/", authenticate, idempotencyMiddleware, asyncHandler(createBet));
 
 /**
  * #swagger.tags = ['Bets']
  * #swagger.summary = 'Sell shares back to market (LMSR)'
- * #swagger.description = 'Auth required. Body: { outcome_id, shares }. Market must be open.'
+ * #swagger.description = 'Auth required. Body: { outcome_id, shares }. Market must be open. Supports X-Idempotency-Key header.'
  */
-router.post("/sell", authenticate, createSell);
+router.post("/sell", authenticate, idempotencyMiddleware, createSell);
 
 /**
  * #swagger.tags = ['Bets']

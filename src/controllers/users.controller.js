@@ -25,6 +25,12 @@ const getPositionsByUserId = async (req, res) => {
   if (req.query.market_id != null && (!Number.isInteger(marketId) || marketId <= 0)) {
     return res.status(400).json({ error: "Invalid market_id query" });
   }
+
+  // Users can only view their own positions unless they're admin
+  if (req.user.id !== userId && !req.user.is_admin) {
+    return res.status(403).json({ error: "You can only view your own positions" });
+  }
+
   try {
     const positions = await usersService.getPositions(userId, marketId || null);
     res.status(200).json({ positions });

@@ -13,12 +13,15 @@ const errorHandler = (err, req, res, next) => {
     return res.status(err.statusCode).json({ error: err.message });
   }
 
-  // Default error response
+  // Ensure consistent error response shape
+  const errorMessage =
+    process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : err.message || "Unknown error";
+
   res.status(500).json({
-    error:
-      process.env.NODE_ENV === "production"
-        ? "Internal server error"
-        : err.message,
+    error: errorMessage,
+    timestamp: new Date().toISOString(),
   });
 };
 
