@@ -28,7 +28,7 @@ CREATE TABLE market_outcomes (
     id SERIAL PRIMARY KEY,
     market_id INT NOT NULL REFERENCES markets(id) ON DELETE CASCADE,
     description TEXT NOT NULL,
-    total_shares_outstanding NUMERIC(20, 6) DEFAULT 0.000000,
+    quantity NUMERIC(20, 6) DEFAULT 0.000000, -- LMSR quantity tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- link the outcome back to the respective market
@@ -49,10 +49,10 @@ CREATE TABLE bets (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     outcome_id INT NOT NULL REFERENCES market_outcomes(id) ON DELETE CASCADE,
     amount NUMERIC(16, 4) NOT NULL, -- what was paid to enter the bet
-	  payout_amount NUMERIC(16, 4) DEFAULT 0.0000, -- to track how much they earned from the bet
-	  is_settled BOOLEAN DEFAULT FALSE, -- to track P/L tracking
+	payout_amount NUMERIC(16, 4) DEFAULT 0.0000, -- to track how much they earned from the bet
+	is_settled BOOLEAN DEFAULT FALSE, -- to track P/L tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    shares_acquired NUMERIC(20, 6) NOT NULL
+    shares NUMERIC(20, 6) NOT NULL -- LMSR shares acquired
 );
 
 CREATE TABLE sells (

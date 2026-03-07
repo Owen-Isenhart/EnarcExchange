@@ -14,8 +14,7 @@ const getMarkets = async (req, res) => {
     res.status(200).json(getPaginationResponse(rows, total, page, limit));
   } catch (err) {
     console.error("getMarkets error:", err.message);
-    const message = process.env.NODE_ENV === "production" ? "Server error" : err.message;
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -36,8 +35,7 @@ const getMarketById = async (req, res) => {
     res.status(200).json(market);
   } catch (err) {
     console.error("getMarketById error:", err.message);
-    const message = process.env.NODE_ENV === "production" ? "Server error" : err.message;
-    res.status(500).json({ error: message });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -131,10 +129,13 @@ const createMarket = async (req, res) => {
     });
   }
 
-  if (liquidity_parameter !== undefined && liquidity_parameter !== null && !validators.positiveNumber(liquidity_parameter)) {
-    return res.status(400).json({
-      error: "liquidity_parameter must be a positive number (e.g. 100 for LMSR)",
-    });
+  if (liquidity_parameter !== undefined && liquidity_parameter !== null) {
+    const lp = parseFloat(liquidity_parameter);
+    if (!Number.isFinite(lp) || lp < 0 || lp > 1) {
+      return res.status(400).json({
+        error: "liquidity_parameter must be a number between 0 and 1",
+      });
+    }
   }
 
   try {

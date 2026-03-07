@@ -76,8 +76,7 @@ router.post(
       return res.status(201).json({ token, user });
     } catch (err) {
       console.error("Signup error:", err);
-      const message = process.env.NODE_ENV === "production" ? "Internal server error" : err.message;
-      return res.status(500).json({ error: message });
+      return res.status(500).json({ error: "Internal server error" });
     }
   })
 );

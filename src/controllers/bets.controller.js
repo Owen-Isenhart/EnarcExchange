@@ -84,7 +84,7 @@ const createBet = async (req, res) => {
 
   try {
     const result = await betsService.createBet(userId, outcome_id, amount);
-    const io = req.app.get("io");
+    const io = req.app?.get("io");
     if (io) {
       io.to(`market:${result.marketId}`).emit("market:prices", {
         market_id: result.marketId,
@@ -131,7 +131,7 @@ const createSell = async (req, res) => {
 
   try {
     const result = await betsService.createSell(userId, outcomeId, sharesNum);
-    const io = req.app.get("io");
+    const io = req.app?.get("io");
     if (io) {
       io.to(`market:${result.marketId}`).emit("market:prices", {
         market_id: result.marketId,
