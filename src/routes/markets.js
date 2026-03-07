@@ -5,9 +5,13 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
   getMarkets,
   getMarketById,
+  getMarketPrices,
+  getMarketQuote,
   createMarket,
   updateMarket,
   deleteMarket,
+  resolveMarket,
+  seedMarket,
 } = require("../controllers/markets.controller");
 
 const router = Router();
@@ -34,6 +38,42 @@ router.get("/", asyncHandler(getMarkets));
  * #swagger.responses[500] = { description: 'Server error' }
  */
 router.post("/", authenticate, requireAdmin, asyncHandler(createMarket));
+
+/**
+ * #swagger.tags = ['Markets']
+ * #swagger.summary = 'Get LMSR prices for market'
+ * #swagger.description = 'Current marginal prices (probabilities) from LMSR for all outcomes'
+ * #swagger.parameters['id'] = { in: 'path', required: true, description: 'Market ID', example: 1 }
+ * #swagger.responses[200] = { description: 'LMSR prices' }
+ * #swagger.responses[404] = { description: 'Market not found' }
+ */
+router.get("/:id/prices", asyncHandler(getMarketPrices));
+
+/**
+ * #swagger.tags = ['Markets']
+ * #swagger.summary = 'Get quote for buying outcome with tokens'
+ * #swagger.description = 'Returns shares and new prices for spending amount tokens on outcome_id'
+ * #swagger.parameters['id'] = { in: 'path', required: true, description: 'Market ID' }
+ * #swagger.parameters['outcome_id'] = { in: 'query', required: true, description: 'Outcome ID' }
+ * #swagger.parameters['amount'] = { in: 'query', required: true, description: 'Token amount to spend' }
+ */
+router.get("/:id/quote", asyncHandler(getMarketQuote));
+
+/**
+ * #swagger.tags = ['Markets']
+ * #swagger.summary = 'Resolve market and pay out winning bets'
+ * #swagger.description = 'Admin only. Sets market resolved, pays 1 token per share to bets on winning_outcome_id.'
+ * #swagger.parameters['id'] = { in: 'path', required: true, description: 'Market ID' }
+ * #swagger.parameters['body'] = { in: 'body', required: true, schema: { winning_outcome_id: 1 } }
+ */
+router.post("/:id/resolve", authenticate, requireAdmin, asyncHandler(resolveMarket));
+
+/**
+ * #swagger.tags = ['Markets']
+ * #swagger.summary = 'Seed initial liquidity (LMSR quantities)'
+ * #swagger.description = 'Admin only. Body: { quantities: [q0, q1, ...] } or { quantities: { outcome_id: q } }. Market must be open and have no bets.'
+ */
+router.post("/:id/seed", authenticate, requireAdmin, asyncHandler(seedMarket));
 
 /**
  * #swagger.tags = ['Markets']

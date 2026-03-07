@@ -7,6 +7,7 @@ const {
   getUserBets,
   getMarketBets,
   createBet,
+  createSell,
 } = require("../controllers/bets.controller");
 
 const router = Router();
@@ -34,6 +35,13 @@ router.get("/", asyncHandler(getBets));
  * #swagger.responses[500] = { description: 'Server error' }
  */
 router.post("/", authenticate, asyncHandler(createBet));
+
+/**
+ * #swagger.tags = ['Bets']
+ * #swagger.summary = 'Sell shares back to market (LMSR)'
+ * #swagger.description = 'Auth required. Body: { outcome_id, shares }. Market must be open.'
+ */
+router.post("/sell", authenticate, createSell);
 
 /**
  * #swagger.tags = ['Bets']

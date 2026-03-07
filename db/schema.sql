@@ -49,10 +49,19 @@ CREATE TABLE bets (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     outcome_id INT NOT NULL REFERENCES market_outcomes(id) ON DELETE CASCADE,
     amount NUMERIC(16, 4) NOT NULL, -- what was paid to enter the bet
-	payout_amount NUMERIC(16, 4) DEFAULT 0.0000, -- to track how much they earned from the bet
-	is_settled BOOLEAN DEFAULT FALSE, -- to track P/L tracking
+	  payout_amount NUMERIC(16, 4) DEFAULT 0.0000, -- to track how much they earned from the bet
+	  is_settled BOOLEAN DEFAULT FALSE, -- to track P/L tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     shares_acquired NUMERIC(20, 6) NOT NULL
+);
+
+CREATE TABLE sells (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    outcome_id INT NOT NULL REFERENCES market_outcomes(id) ON DELETE CASCADE,
+    shares FLOAT NOT NULL,
+    tokens_received INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE transactions (

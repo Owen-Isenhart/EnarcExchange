@@ -69,34 +69,36 @@ Expected: `200` with `user` (id, email, username, token_balance, created_at).
 ### List all markets
 
 ```bash
-curl http://localhost:3000/markets
+curl http://localhost:3000/api/markets
 ```
 
-Expected: JSON array of markets (empty if no seed, or 3 if you ran seed).
+Expected: `{ "data": [...], "pagination": { "page", "limit", "total", "pages" } }` (empty data if no seed, or 3 markets if you ran seed).
 
 ### Get one market
 
 ```bash
-curl http://localhost:3000/markets/1
+curl http://localhost:3000/api/markets/1
 ```
 
 Expected: JSON array with one market (id 1). If no market 1, empty array or 500.
 
-### Create market
+### Create market (admin, JWT required)
 
 ```bash
-curl -X POST http://localhost:3000/markets \
+curl -X POST http://localhost:3000/api/markets \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"Test Market\",\"description\":\"Will it rain tomorrow?\"}"
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d "{\"name\":\"Test Market\",\"description\":\"Will it rain?\",\"start_time\":\"2026-04-01T00:00:00Z\",\"end_time\":\"2026-04-30T00:00:00Z\"}"
 ```
 
-Expected: `200` and message like "Market added with ID: ...".
+Expected: `201` and created market JSON.
 
-### Update market
+### Update market (admin)
 
 ```bash
-curl -X PUT http://localhost:3000/markets/1 \
+curl -X PUT http://localhost:3000/api/markets/1 \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
   -d "{\"name\":\"Updated Name\",\"description\":\"Updated description\"}"
 ```
 
