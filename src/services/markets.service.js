@@ -179,6 +179,16 @@ const marketsService = {
         });
       }
 
+      // Mark all losing bets as settled with payout_amount = 0
+      await client.query(
+        `UPDATE bets SET payout_amount = 0, is_settled = TRUE 
+         WHERE outcome_id IN (
+           SELECT id FROM market_outcomes 
+           WHERE market_id = $1 AND id != $2
+         ) AND (is_settled IS NOT TRUE OR is_settled = FALSE)`,
+        [marketId, winningOutcomeId]
+      );
+
       await client.query("COMMIT");
       return {
         market_id: marketId,

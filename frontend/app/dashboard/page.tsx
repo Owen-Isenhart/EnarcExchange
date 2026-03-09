@@ -6,24 +6,36 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPositions, useUserStats } from '@/hooks/useUser';
+import { useUserBets } from '@/hooks/useBets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
-import { formatCurrency, formatPercent, formatPrice } from '@/utils/formatting';
-import { Wallet, TrendingUp, Target, Zap } from 'lucide-react';
+import { formatCurrency, formatPercent, formatPrice, formatDate } from '@/utils/formatting';
+import { Wallet, TrendingUp, Target, Zap, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { positions, isLoading: positionsLoading } = useUserPositions(user?.id);
   const { stats, isLoading: statsLoading } = useUserStats(user?.id || 0);
+  const { bets, isLoading: betsLoading } = useUserBets(user?.id || 0);
+
+  // Calculate bet status based on is_settled and payout_amount
+  const getBetStatus = (bet: any) => {
+    if (!bet.is_settled) return 'open';
+    if (bet.payout_amount > 0) return 'won';
+    return 'lost';
+  };
+
+  const betsArray = Array.isArray(bets) ? bets : [];
+  const openBets = betsArray.filter((b: any) => getBetStatus(b) === 'open');
 
   if (!user) {
     return (
       <div className="section container-max">
         <Card>
           <CardContent>
-            <p className="text-center text-white/70">Please login to view your dashboard</p>
+            <p className="text-center text-secondary">Please login to view your dashboard</p>
           </CardContent>
         </Card>
       </div>
@@ -35,7 +47,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div>
         <h1 className="text-4xl font-bold mb-2">Welcome back, {user.username}!</h1>
-        <p className="text-white/70">Track your portfolio and recent market activity</p>
+        <p className="text-secondary">Track your portfolio and recent market activity</p>
       </div>
 
       {/* Stats Grid */}
@@ -43,11 +55,11 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-white/70">
+              <div className="flex items-center gap-2 text-secondary">
                 <Wallet className="h-4 w-4" />
                 <span className="text-sm">Account Balance</span>
               </div>
-              <p className="text-2xl font-bold mono">
+              <p className="text-2xl font-bold mono text-primary">
                 {formatCurrency(user.token_balance)}
               </p>
             </div>
@@ -65,11 +77,11 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-white/70">
+                  <div className="flex items-center gap-2 text-secondary">
                     <TrendingUp className="h-4 w-4" />
                     <span className="text-sm">Total Won</span>
                   </div>
-                  <p className="text-2xl font-bold mono text-[#00FF41]">
+                  <p className="text-2xl font-bold mono text-success">
                     {formatCurrency(stats.total_won)}
                   </p>
                 </div>
@@ -79,11 +91,11 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-white/70">
+                  <div className="flex items-center gap-2 text-secondary">
                     <Target className="h-4 w-4" />
                     <span className="text-sm">Win Rate</span>
                   </div>
-                  <p className="text-2xl font-bold mono">
+                  <p className="text-2xl font-bold mono text-primary">
                     {stats.total_bets > 0
                       ? formatPercent((stats.wins / stats.total_bets) * 100)
                       : '0%'}
@@ -95,11 +107,11 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-white/70">
+                  <div className="flex items-center gap-2 text-secondary">
                     <Zap className="h-4 w-4" />
                     <span className="text-sm">ROI</span>
                   </div>
-                  <p className={`text-2xl font-bold mono ${stats.roi >= 0 ? 'text-[#00FF41]' : 'text-[#FF8C00]'}`}>
+                  <p className={`text-2xl font-bold mono ${stats.roi >= 0 ? 'text-primary' : 'text-error'}`}>
                     {formatPercent(stats.roi)}
                   </p>
                 </div>
@@ -107,55 +119,84 @@ export default function DashboardPage() {
             </Card>
           </>
         ) : null}
-      </div>
+      </div>      
 
-      {/* Open Positions */}
+      {/* Open Bets */}
       <div>
         <h2 className="text-2xl font-bold mb-4">Open Positions</h2>
-        {positionsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <CardSkeleton />
-            <CardSkeleton />
-          </div>
-        ) : positions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {positions.map((position) => (
-              <Card key={position.outcome_id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{position.market_name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/70">{position.outcome_description}</span>
-                    <Badge variant="info">
-                      {position.shares} shares
-                    </Badge>
+        {betsLoading ? (
+          <CardSkeleton />
+        ) : openBets.length > 0 ? (
+          <Card className="overflow-hidden">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-primary/5 border-b border-primary/20 text-xs font-semibold text-secondary">
+              <div className="col-span-2">RESULT</div>
+              <div className="col-span-5">MARKET</div>
+              <div className="col-span-2 text-right">TOTAL TRADED</div>
+              <div className="col-span-3 text-right">AMOUNT WON</div>
+            </div>
+
+            {/* Table Rows */}
+            {openBets.map((bet: any) => {
+              const status = getBetStatus(bet);
+              const pnl = (bet.payout_amount || 0) - (bet.amount || 0);
+              const isWon = status === 'won';
+              const isLost = status === 'lost';
+              const isOpen = status === 'open';
+
+              return (
+                <div key={bet.id} className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-primary/10 items-center hover:bg-primary/5 transition-colors">
+                  {/* Result Status */}
+                  <div className="col-span-2 flex items-center gap-2">
+                    {isWon && <CheckCircle2 className="h-5 w-5 text-success" />}
+                    {isLost && <XCircle className="h-5 w-5 text-error" />}
+                    {isOpen && <Clock className="h-5 w-5 text-secondary" />}
+                    <span className="text-sm font-semibold capitalize">
+                      {status}
+                    </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
-                    <div>
-                      <p className="text-xs text-white/50">Current Price</p>
-                      <p className="mono font-bold text-[#00FF41]">
-                        {formatPrice(position.current_price)}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-white/50">Position Value</p>
-                      <p className="mono font-bold">
-                        {formatCurrency(position.value)}
-                      </p>
-                    </div>
+
+                  {/* Market Info */}
+                  <div className="col-span-5">
+                    <p className="font-semibold text-sm text-primary">{bet.outcome_description}</p>
+                    <p className="text-xs text-secondary">{bet.market_name}</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+                  {/* Total Traded */}
+                  <div className="col-span-2 text-right">
+                    <p className="font-semibold mono text-sm text-primary">{formatCurrency(bet.amount)}</p>
+                  </div>
+
+                  {/* Amount Won */}
+                  <div className="col-span-3 text-right">
+                    {isOpen ? (
+                      <p className="text-sm text-secondary">-</p>
+                    ) : (
+                      <>
+                        <p className={`font-semibold mono text-sm ${
+                          isWon ? 'text-success' : isLost ? 'text-error' : 'text-secondary'
+                        }`}>
+                          {isWon ? '+' : ''}{formatCurrency(pnl)}
+                        </p>
+                        <p className={`text-xs ${
+                          isWon ? 'text-success/70' : 'text-error/70'
+                        }`}>
+                          ({isWon ? '+' : ''}{((pnl / bet.amount) * 100).toFixed(2)}%)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
         ) : (
           <Card>
             <CardContent>
               <div className="text-center space-y-4 py-8">
-                <p className="text-white/70">No open positions yet</p>
+                <p className="text-secondary">No open positions yet</p>
                 <Link href="/markets">
-                  <button className="text-[#00FF41] hover:text-[#00ff41]/80 transition-colors">
+                  <button className="text-primary hover:text-primary/80 transition-colors">
                     Explore Markets →
                   </button>
                 </Link>

@@ -30,11 +30,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        'bg-[#00FF41] text-[#050505] hover:bg-[#00ff41]/90 focus:ring-[#00FF41]',
+        'bg-primary text-white hover:opacity-90 focus:ring-primary',
       secondary:
-        'bg-white/10 text-white hover:bg-white/20 border border-white/20 focus:ring-white',
-      danger: 'bg-[#FF8C00] text-white hover:bg-[#ff8c00]/90 focus:ring-[#FF8C00]',
-      ghost: 'text-white hover:bg-white/10 focus:ring-white',
+        'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/30 focus:ring-primary',
+      danger: 'bg-error text-white hover:opacity-90 focus:ring-error',
+      ghost: 'text-primary hover:bg-primary/10 focus:ring-primary',
     };
 
     const sizes = {

@@ -143,6 +143,14 @@ export function useResolveMarket(id: number) {
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.MARKETS.ALL,
       });
+      // Invalidate all bets-related queries so bet statuses are refetched
+      // This includes ALL bets, user-specific bets, and market-specific bets
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          return Array.isArray(queryKey) && queryKey[0] === 'bets';
+        },
+      });
       addNotification({
         type: 'success',
         message: 'Market resolved successfully!',
@@ -153,6 +161,33 @@ export function useResolveMarket(id: number) {
       addNotification({
         type: 'error',
         message: error.message || 'Failed to resolve market',
+      });
+    },
+  });
+}
+
+export function useUpdateMarket(id: number) {
+  const queryClient = useQueryClient();
+  const { addNotification } = useUiStore();
+
+  return useMutation({
+    mutationFn: (data: { status?: 'open' | 'closed' | 'resolved'; [key: string]: any }) =>
+      marketsService.updateMarket(id, data),
+    onSuccess: (market: any) => {
+      queryClient.setQueryData(QUERY_KEYS.MARKETS.DETAIL(id), market);
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.MARKETS.ALL,
+      });
+      addNotification({
+        type: 'success',
+        message: 'Market updated successfully!',
+      });
+      return market;
+    },
+    onError: (error: any) => {
+      addNotification({
+        type: 'error',
+        message: error.message || 'Failed to update market',
       });
     },
   });

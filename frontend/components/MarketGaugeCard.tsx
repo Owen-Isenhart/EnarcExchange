@@ -55,10 +55,10 @@ export const MarketGaugeCard = ({ market }: MarketGaugeCardProps) => {
     <div className="flex flex-col h-full">
       <div className="flex gap-4 mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white text-sm line-clamp-2 mb-1">
+          <h3 className="font-semibold text-primary text-sm line-clamp-2 mb-1">
             {market.name}
           </h3>
-          <p className="text-xs text-white/60 line-clamp-2">
+          <p className="text-xs text-secondary line-clamp-2">
             {market.description}
           </p>
         </div>
@@ -89,7 +89,7 @@ export const MarketGaugeCard = ({ market }: MarketGaugeCardProps) => {
               <span className="text-xs font-bold leading-none" style={{ color: gaugeColor }}>
                 {yesPercentage}%
               </span>
-              <span className="text-[10px] text-white/50 leading-none">
+              <span className="text-[10px] text-secondary leading-none">
                 chance
               </span>
             </div>
@@ -99,15 +99,15 @@ export const MarketGaugeCard = ({ market }: MarketGaugeCardProps) => {
 
       {/* ... (rest of the component: outcome buttons and footer) */}
       <div className="flex gap-2 mb-4 flex-shrink-0">
-        <button className="flex-1 px-3 py-2 bg-[#00FF41]/10 border border-[#00FF41] text-[#00FF41] rounded text-sm font-medium hover:bg-[#00FF41]/20 transition-colors">
+        <button className="flex-1 px-3 py-2 bg-primary/10 border border-primary text-primary rounded text-sm font-medium hover:bg-primary/20 transition-colors">
           Yes
         </button>
-        <button className="flex-1 px-3 py-2 bg-red-500/10 border border-red-500 text-red-400 rounded text-sm font-medium hover:bg-red-500/20 transition-colors">
+        <button className="flex-1 px-3 py-2 bg-error/10 border border-error text-error rounded text-sm font-medium hover:bg-error/20 transition-colors">
           No
         </button>
       </div>
 
-      <div className="text-xs text-white/50 space-y-1 flex-shrink-0">
+      <div className="text-xs text-secondary space-y-1 flex-shrink-0">
         <div className="flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           <span>Created {formatDate(market.created_at)}</span>

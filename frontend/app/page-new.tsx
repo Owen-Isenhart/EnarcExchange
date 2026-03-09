@@ -59,8 +59,8 @@ export default function Home() {
             </div>
 
             <div className="hidden md:flex justify-center">
-              <div className="w-64 h-64 rounded-lg bg-gradient-to-br from-[#00FF41]/20 to-[#FF8C00]/20 border border-white/10 flex-center glow">
-                <BarChart3 className="h-24 w-24 text-[#00FF41]/50" />
+              <div className="w-64 h-64 rounded-lg bg-gradient-to-br from-[#154734]/20 to-[#e87500]/20 border border-surface-light flex-center glow">
+                <BarChart3 className="h-24 w-24 text-[#154734]/50" />
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="section bg-white/5">
+      <section className="section bg-surface-secondary">
         <div className="container-max">
           <h2 className="text-3xl font-bold text-center mb-12">Why EnarcExchange?</h2>
 
@@ -76,9 +76,9 @@ export default function Home() {
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="glass p-8 rounded-lg space-y-4 hover:bg-white/10 transition-all"
+                className="glass p-8 rounded-lg space-y-4 hover:bg-surface-secondary transition-all"
               >
-                <div className="w-12 h-12 rounded-lg bg-[#00FF41]/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-[#154734]/20 flex items-center justify-center">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold">{feature.title}</h3>
@@ -114,12 +114,12 @@ export default function Home() {
 
 const features = [
   {
-    icon: <TrendingUp className="h-6 w-6 text-[#00FF41]" />,
+    icon: <TrendingUp className="h-6 w-6 text-[#154734]" />,
     title: 'Real-Time Markets',
     description: 'Trade on hundreds of live prediction markets with real-time pricing',
   },
   {
-    icon: <Zap className="h-6 w-6 text-[#FF8C00]" />,
+    icon: <Zap className="h-6 w-6 text-[#e87500]" />,
     title: 'Automated Pricing',
     description: 'Dynamic LMSR-powered pricing ensures optimal liquidity and fair odds',
   },

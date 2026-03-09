@@ -24,7 +24,7 @@ export default function CreateMarketPage() {
     description: '',
     start_time: new Date().toISOString().split('T')[0],
     end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    liquidity_parameter: 100,
+    liquidity_parameter: 0.01,
   });
 
   if (!user) {
@@ -32,7 +32,7 @@ export default function CreateMarketPage() {
       <div className="section container-max">
         <Card>
           <CardContent>
-            <p className="text-center text-white/70">Please login to create a market</p>
+            <p className="text-center text-secondary">Please login to create a market</p>
           </CardContent>
         </Card>
       </div>
@@ -44,7 +44,7 @@ export default function CreateMarketPage() {
       <div className="section container-max">
         <Card>
           <CardContent>
-            <p className="text-center text-white/70">Only admins can create markets</p>
+            <p className="text-center text-secondary">Only admins can create markets</p>
           </CardContent>
         </Card>
       </div>
@@ -91,7 +91,7 @@ export default function CreateMarketPage() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold mb-2">Create Market</h1>
-        <p className="text-white/70">Create a new prediction market</p>
+        <p className="text-secondary">Create a new prediction market</p>
       </div>
 
       {/* Form */}
@@ -103,7 +103,7 @@ export default function CreateMarketPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Market Name *
               </label>
               <Input
@@ -116,14 +116,14 @@ export default function CreateMarketPage() {
                 disabled={createMarket.isPending}
                 required
               />
-              <p className="text-xs text-white/50 mt-1">
+              <p className="text-xs text-muted mt-1">
                 3-200 characters
               </p>
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Description
               </label>
               <textarea
@@ -134,14 +134,14 @@ export default function CreateMarketPage() {
                 }
                 disabled={createMarket.isPending}
                 rows={4}
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-[#00FF41]/50 transition-colors"
+                className="w-full px-4 py-2 bg-surface-secondary border border-surface-light rounded-lg text-primary placeholder-secondary/50 focus:outline-none focus:border-[#154734]/50 transition-colors"
               />
             </div>
 
             {/* Date Range */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   Start Time *
                 </label>
                 <Input
@@ -155,7 +155,7 @@ export default function CreateMarketPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white mb-2">
+                <label className="block text-sm font-medium text-primary mb-2">
                   End Time *
                 </label>
                 <Input
@@ -172,24 +172,25 @@ export default function CreateMarketPage() {
 
             {/* Liquidity Parameter */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">
+              <label className="block text-sm font-medium text-primary mb-2">
                 Liquidity Parameter
               </label>
               <Input
                 type="number"
-                min="1"
-                step="1"
+                min="0"
+                max="1"
+                step="0.01"
                 value={formData.liquidity_parameter}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    liquidity_parameter: parseFloat(e.target.value) || 100,
+                    liquidity_parameter: parseFloat(e.target.value) || 0.01,
                   })
                 }
                 disabled={createMarket.isPending}
               />
-              <p className="text-xs text-white/50 mt-1">
-                Higher values mean more liquidity (default: 100)
+              <p className="text-xs text-muted mt-1">
+                Value between 0 and 1. Higher values mean more liquidity (default: 0.01)
               </p>
             </div>
 

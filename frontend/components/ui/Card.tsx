@@ -15,8 +15,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-6',
-          'transition-all duration-200 hover:border-white/20 hover:bg-white/10',
+          'rounded-lg border border-surface bg-surface/50 backdrop-blur-sm p-6',
+          'transition-all duration-200 hover:border-surface hover:bg-surface/60',
           className
         )}
         {...props}
@@ -38,7 +38,7 @@ export const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn('mb-4 pb-4 border-b border-white/10', className)}
+        className={cn('mb-4 pb-4 border-b border-surface', className)}
         {...props}
       >
         {children}
@@ -58,7 +58,7 @@ export const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <h2
         ref={ref}
-        className={cn('text-xl font-semibold text-white', className)}
+        className={cn('text-xl font-semibold text-primary', className)}
         {...props}
       >
         {children}
@@ -94,7 +94,7 @@ export const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn('mt-4 pt-4 border-t border-white/10 flex gap-2', className)}
+        className={cn('mt-4 pt-4 border-t border-surface flex gap-2', className)}
         {...props}
       >
         {children}

@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#050505] text-white antialiased">
+      <body className="text-primary antialiased">
         <Providers>
           <Header />
           <div className="flex">

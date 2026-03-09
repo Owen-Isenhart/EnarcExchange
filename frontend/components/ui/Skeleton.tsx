@@ -28,12 +28,12 @@ Skeleton.displayName = 'Skeleton';
 
 export const CardSkeleton: React.FC = () => {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-6 space-y-4">
+    <div className="rounded-lg border border-surface-light bg-surface-secondary p-6 space-y-4">
       <Skeleton className="h-6 w-2/3" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-1/3" />
-      <div className="pt-4 border-t border-white/10">
+      <div className="pt-4 border-t border-surface-light">
         <Skeleton className="h-10 w-full" />
       </div>
     </div>
@@ -42,7 +42,7 @@ export const CardSkeleton: React.FC = () => {
 
 export const TableRowSkeleton: React.FC<{ columns?: number }> = ({ columns = 4 }) => {
   return (
-    <tr className="border-b border-white/10">
+    <tr className="border-b border-surface-light">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="px-6 py-4">
           <Skeleton className="h-4 w-full" />

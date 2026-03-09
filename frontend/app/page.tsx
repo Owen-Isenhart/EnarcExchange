@@ -59,8 +59,8 @@ export default function Home() {
             </div>
 
             <div className="hidden md:flex justify-center">
-              <div className="w-64 h-64 rounded-lg bg-gradient-to-br from-[#00FF41]/20 to-[#FF8C00]/20 border border-white/10 flex-center glow">
-                <BarChart3 className="h-24 w-24 text-[#00FF41]/50" />
+              <div className="w-64 h-64 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/20 flex-center glow">
+                <BarChart3 className="h-24 w-24 text-primary/50" />
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="section bg-white/5">
+      <section className="section bg-primary/5">
         <div className="container-max">
           <h2 className="text-3xl font-bold text-center mb-12">Why EnarcExchange?</h2>
 
@@ -76,13 +76,13 @@ export default function Home() {
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className="glass p-8 rounded-lg space-y-4 hover:bg-white/10 transition-all"
+                className="glass p-8 rounded-lg space-y-4 hover:bg-primary/10 transition-all"
               >
-                <div className="w-12 h-12 rounded-lg bg-[#00FF41]/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="text-white/70">{feature.description}</p>
+                <p className="text-secondary">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -95,7 +95,7 @@ export default function Home() {
           <div className="container-max">
             <div className="glass-dark p-12 rounded-lg text-center space-y-6">
               <h2 className="text-3xl font-bold">Ready to start trading?</h2>
-              <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              <p className="text-xl text-secondary max-w-2xl mx-auto">
                 Join thousands of predictors making informed decisions on real-world events
               </p>
               <Link href="/signup">
@@ -114,17 +114,17 @@ export default function Home() {
 
 const features = [
   {
-    icon: <TrendingUp className="h-6 w-6 text-[#00FF41]" />,
+    icon: <TrendingUp className="h-6 w-6 text-primary" />,
     title: 'Real-Time Markets',
     description: 'Trade on hundreds of live prediction markets with real-time pricing',
   },
   {
-    icon: <Zap className="h-6 w-6 text-[#FF8C00]" />,
+    icon: <Zap className="h-6 w-6 text-secondary" />,
     title: 'Automated Pricing',
     description: 'Dynamic LMSR-powered pricing ensures optimal liquidity and fair odds',
   },
   {
-    icon: <BarChart3 className="h-6 w-6 text-blue-400" />,
+    icon: <BarChart3 className="h-6 w-6 text-primary" />,
     title: 'Track Portfolio',
     description: 'Monitor positions, P&L, and detailed statistics across all markets',
   },

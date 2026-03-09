@@ -3,6 +3,7 @@
  */
 
 import { create } from 'zustand';
+import type { Theme } from '@/types';
 
 interface Notification {
   id: string;
@@ -30,8 +31,9 @@ interface UiState {
   setSidebarOpen: (open: boolean) => void;
 
   // Theme
-  theme: 'dark' | 'light';
-  setTheme: (theme: 'dark' | 'light') => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  initializeTheme: () => void;
 }
 
 let notificationCounter = 0;
@@ -93,12 +95,36 @@ export const useUiStore = create<UiState>((set: any, get: any) => ({
 
   setSidebarOpen: (open: any) => set({ isSidebarOpen: open }),
 
-  theme: 'dark',
+  theme: 'dark' as Theme,
   
-  setTheme: (theme: any) => {
+  setTheme: (theme: Theme) => {
     set({ theme });
     if (typeof window !== 'undefined') {
+      const html = document.documentElement;
+      html.classList.remove('light', 'dark');
+      html.classList.add(theme);
       localStorage.setItem('theme', theme);
     }
+  },
+
+  initializeTheme: () => {
+    if (typeof window === 'undefined') return;
+
+    const html = document.documentElement;
+    let savedTheme: Theme = 'dark'; // Default
+
+    // Check localStorage
+    const stored = localStorage.getItem('theme');
+    if (stored === 'light' || stored === 'dark') {
+      savedTheme = stored;
+    } else if (!stored) {
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      savedTheme = prefersDark ? 'dark' : 'light';
+    }
+
+    html.classList.remove('light', 'dark');
+    html.classList.add(savedTheme);
+    set({ theme: savedTheme });
   },
 }));

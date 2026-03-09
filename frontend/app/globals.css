@@ -1,12 +1,75 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #00FF41;
-  --color-accent: #FF8C00;
-  --color-bg: #050505;
-  --color-surface: #0a0a0a;
-  --font-mono: 'JetBrains Mono', monospace;
+/**
+ * CSS Variables for theming
+ * Light mode: More subdued, professional colors
+ * Dark mode: Vibrant, neon colors
+ */
+
+/* Light mode (default) */
+:root,
+html.light {
+  /* Primary: Subdued forest green (#154734) */
+  --color-primary: 152 54% 18%;
+  --color-primary-light: 152 50% 35%;
+  --color-primary-dark: 152 60% 12%;
+
+  /* Secondary: Warm orange (#e87500) */
+  --color-secondary: 33 100% 46%;
+  --color-secondary-light: 33 100% 56%;
+  --color-secondary-dark: 33 100% 36%;
+
+  /* Accent colors */
+  --color-warning: 45 93% 56%;
+  --color-success: 152 54% 18%;
+  --color-error: 33 100% 46%;
+
+  /* Background and surfaces */
+  --color-background: 60 9% 98%;
+  --color-surface: 0 0% 100%;
+  --color-surface-light: 60 10% 96%;
+  --color-surface-secondary: 220 14% 92%;
+
+  /* Text */
+  --text-primary: 0 0% 7%;
+  --text-secondary: 220 9% 42%;
+
+  /* Borders */
+  --border-primary: 220 13% 91%;
+  --border-secondary: 60 10% 96%;
+}
+
+/* Dark mode */
+html.dark {
+  /* Primary: Vibrant neon green (#00ff41) */
+  --color-primary: 129 100% 50%;
+  --color-primary-light: 135 100% 54%;
+  --color-primary-dark: 120 100% 40%;
+
+  /* Secondary: Vibrant neon orange (#ff8c00) */
+  --color-secondary: 33 100% 50%;
+  --color-secondary-light: 35 100% 60%;
+  --color-secondary-dark: 30 100% 40%;
+
+  /* Accent colors */
+  --color-warning: 45 97% 59%;
+  --color-success: 129 100% 50%;
+  --color-error: 0 100% 50%;
+
+  /* Background and surfaces */
+  --color-background: 0 0% 3%;
+  --color-surface: 0 0% 6%;
+  --color-surface-light: 0 0% 10%;
+  --color-surface-secondary: 0 0% 12%;
+
+  /* Text */
+  --text-primary: 60 9% 98%;
+  --text-secondary: 220 9% 82%;
+
+  /* Borders */
+  --border-primary: 0 0% 8%;
+  --border-secondary: 0 0% 6%;
 }
 
 @layer base {
@@ -15,7 +78,20 @@
   }
 
   body {
-    @apply bg-[#050505] text-white antialiased;
+    @apply antialiased transition-colors duration-300;
+    color: hsl(var(--text-primary));
+    background-color: hsl(var(--color-background));
+  }
+
+  /* Grid pattern background - theme-aware */
+  html.light body {
+    background-image:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+      linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  html.dark body {
     background-image:
       linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
       linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
@@ -24,6 +100,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
+    color: hsl(var(--text-primary));
   }
 
   h1 { @apply text-4xl; }
@@ -34,11 +111,17 @@
   h6 { @apply text-base; }
 
   a {
-    @apply text-[#00FF41] hover:text-[#00ff41]/80 transition-colors;
+    @apply transition-colors;
+    color: hsl(var(--color-primary));
+  }
+
+  a:hover {
+    color: hsl(var(--color-primary) / 0.8);
   }
 
   ::selection {
-    @apply bg-[#00FF41] text-[#050505];
+    background-color: hsl(var(--color-primary));
+    color: hsl(var(--color-background));
   }
 
   ::-webkit-scrollbar {
@@ -46,33 +129,53 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-white/5;
+    background-color: hsl(var(--color-surface));
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-white/20 rounded-full hover:bg-white/30;
+    background-color: hsl(var(--text-secondary) / 0.2);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--text-secondary) / 0.3);
   }
 }
 
 @layer components {
   .mono {
     @apply font-mono;
+    color: hsl(var(--text-primary));
   }
 
   .mono-lg {
     @apply font-mono text-lg;
+    color: hsl(var(--text-primary));
   }
 
   .mono-sm {
     @apply font-mono text-sm;
+    color: hsl(var(--text-primary));
   }
 
   .glass {
-    @apply bg-white/5 backdrop-blur-sm border border-white/10;
+    @apply backdrop-blur-sm border transition-colors;
+    background-color: hsl(var(--color-surface) / 0.5);
+    border-color: hsl(var(--text-primary) / 0.1);
+  }
+
+  .glass:hover {
+    border-color: hsl(var(--text-primary) / 0.2);
   }
 
   .glass-dark {
-    @apply bg-white/[0.02] backdrop-blur-md border border-white/5;
+    @apply backdrop-blur-md border transition-colors;
+    background-color: hsl(var(--color-surface) / 0.3);
+    border-color: hsl(var(--text-primary) / 0.05);
+  }
+
+  .glass-dark:hover {
+    border-color: hsl(var(--text-primary) / 0.1);
   }
 
   .grid-responsive {
@@ -84,7 +187,8 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-[#00FF41] to-[#FF8C00] bg-clip-text text-transparent;
+    background: linear-gradient(to right, hsl(var(--color-primary)), hsl(var(--color-secondary)));
+    @apply bg-clip-text text-transparent;
   }
 
   .pulse-subtle {
@@ -97,11 +201,11 @@
   }
 
   .glow {
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 20px hsl(var(--color-primary) / 0.2);
   }
 
   .glow-alert {
-    box-shadow: 0 0 20px rgba(255, 140, 0, 0.2);
+    box-shadow: 0 0 20px hsl(var(--color-secondary) / 0.2);
   }
 
   .container-max {
@@ -127,11 +231,17 @@
   }
 
   .border-thin {
-    @apply border border-white/10;
+    border-color: hsl(var(--border-primary));
+    @apply border;
   }
 
   .border-thin-hover {
-    @apply border border-white/10 hover:border-white/20 transition-colors;
+    border-color: hsl(var(--border-primary));
+    @apply border transition-colors;
+  }
+
+  .border-thin-hover:hover {
+    border-color: hsl(var(--border-primary) / 0.5);
   }
 
   .absolute-center {
@@ -148,6 +258,97 @@
 
   .opacity-disabled {
     @apply opacity-50 cursor-not-allowed;
+  }
+
+  /* Theme utilities */
+  .text-primary {
+    color: hsl(var(--text-primary));
+  }
+
+  .text-secondary {
+    color: hsl(var(--text-secondary));
+  }
+
+  .text-muted {
+    color: hsl(var(--text-secondary) / 0.65);
+  }
+
+  .bg-surface {
+    background-color: hsl(var(--color-surface));
+  }
+
+  .bg-surface-secondary {
+    background-color: hsl(var(--color-surface-secondary));
+  }
+
+  .border-surface {
+    border-color: hsl(var(--border-primary));
+  }
+
+  .border-surface-light {
+    border-color: hsl(var(--border-primary) / 0.5);
+  }
+
+  /* Color brand utilities */
+  .text-accent-primary {
+    color: hsl(var(--color-primary));
+  }
+
+  .text-accent-secondary {
+    color: hsl(var(--color-secondary));
+  }
+
+  .bg-primary {
+    background-color: hsl(var(--color-primary));
+  }
+
+  .bg-secondary {
+    background-color: hsl(var(--color-secondary));
+  }
+
+  .border-primary {
+    border-color: hsl(var(--color-primary));
+  }
+
+  .border-secondary {
+    border-color: hsl(var(--color-secondary));
+  }
+
+  /* Status colors */
+  .text-success {
+    color: hsl(var(--color-success));
+  }
+
+  .text-error {
+    color: hsl(var(--color-error));
+  }
+
+  .text-warning {
+    color: hsl(var(--color-warning));
+  }
+
+  .bg-success {
+    background-color: hsl(var(--color-success));
+  }
+
+  .bg-error {
+    background-color: hsl(var(--color-error));
+  }
+
+  .bg-warning {
+    background-color: hsl(var(--color-warning));
+  }
+
+  .border-success {
+    border-color: hsl(var(--color-success));
+  }
+
+  .border-error {
+    border-color: hsl(var(--color-error));
+  }
+
+  .border-warning {
+    border-color: hsl(var(--color-warning));
   }
 }
 

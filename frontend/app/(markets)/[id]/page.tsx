@@ -28,7 +28,7 @@ export default function MarketDetailPage() {
       <div className="section container-max">
         <Card>
           <CardContent>
-            <p className="text-center text-white/70">Invalid market ID</p>
+            <p className="text-center text-secondary">Invalid market ID</p>
           </CardContent>
         </Card>
       </div>
@@ -55,7 +55,7 @@ export default function MarketDetailPage() {
       <div className="section container-max">
         <Card>
           <CardContent>
-            <p className="text-center text-white/70">Market not found</p>
+            <p className="text-center text-secondary">Market not found</p>
           </CardContent>
         </Card>
       </div>
@@ -93,29 +93,29 @@ export default function MarketDetailPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <CardTitle className="text-3xl mb-2">{market.name}</CardTitle>
-              <p className="text-white/70">{market.description}</p>
+              <p className="text-secondary">{market.description}</p>
             </div>
             <Badge variant={market.status === 'open' ? 'success' : 'warning'}>
               {market.status}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 pt-6 border-t border-white/10">
+        <CardContent className="space-y-4 pt-6 border-t border-surface-light">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-white/50 mb-1">Created By</p>
+              <p className="text-xs text-muted mb-1">Created By</p>
               <p className="font-semibold">{market.created_by_username}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50 mb-1">Created</p>
+              <p className="text-xs text-muted mb-1">Created</p>
               <p className="font-semibold">{formatDate(market.created_at)}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50 mb-1">Liquidity Param</p>
+              <p className="text-xs text-muted mb-1">Liquidity Param</p>
               <p className="font-semibold">{market.liquidity_parameter}</p>
             </div>
             <div>
-              <p className="text-xs text-white/50 mb-1">Status</p>
+              <p className="text-xs text-muted mb-1">Status</p>
               <Badge variant={market.status === 'open' ? 'success' : 'warning'}>
                 {market.status}
               </Badge>
@@ -137,7 +137,7 @@ export default function MarketDetailPage() {
               <Card
                 key={outcome.id}
                 className={`cursor-pointer transition-all ${
-                  isSelected ? 'border-[#00FF41] bg-[#00FF41]/5' : ''
+                  isSelected ? 'border-[#154734] bg-[#154734]/5' : ''
                 }`}
                 onClick={() => setSelectedOutcome(outcome.id)}
               >
@@ -145,16 +145,16 @@ export default function MarketDetailPage() {
                   <div>
                     <h3 className="text-lg font-semibold">{outcome.description}</h3>
                     {price && (
-                      <p className="text-white/70 text-sm mt-1">
-                        Current odds: <span className="mono font-bold text-[#00FF41]">{formatPrice(price.price)}%</span>
+                      <p className="text-secondary text-sm mt-1">
+                        Current odds: <span className="mono font-bold text-[#154734]">{formatPrice(price.price)}%</span>
                       </p>
                     )}
                   </div>
                   <div
                     className={`w-6 h-6 rounded-full border-2 ${
                       isSelected
-                        ? 'border-[#00FF41] bg-[#00FF41]/20'
-                        : 'border-white/20'
+                        ? 'border-[#154734] bg-[#154734]/20'
+                        : 'border-surface-light'
                     }`}
                   />
                 </CardContent>
@@ -171,13 +171,13 @@ export default function MarketDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {!user ? (
-                <p className="text-center text-white/70">Please login to place bets</p>
+                <p className="text-center text-secondary">Please login to place bets</p>
               ) : market.status !== 'open' ? (
-                <p className="text-center text-[#FF8C00]">Market is not open for betting</p>
+                <p className="text-center text-[#e87500]">Market is not open for betting</p>
               ) : (
                 <>
                   <div>
-                    <p className="text-sm text-white/70 mb-2">
+                    <p className="text-sm text-secondary mb-2">
                       Balance: <span className="mono font-bold">{formatCurrency(user.token_balance)}</span>
                     </p>
                   </div>
@@ -193,14 +193,14 @@ export default function MarketDetailPage() {
                   />
 
                   {selectedOutcome && betAmount && (
-                    <div className="space-y-2 p-3 bg-white/5 rounded-lg">
+                    <div className="space-y-2 p-3 bg-surface-secondary rounded-lg">
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/70">Bet Amount</span>
+                        <span className="text-secondary">Bet Amount</span>
                         <span className="mono font-bold">{formatCurrency(parseFloat(betAmount))}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-white/70">Est. Shares</span>
-                        <span className="mono font-bold text-[#00FF41]">
+                        <span className="text-secondary">Est. Shares</span>
+                        <span className="mono font-bold text-[#154734]">
                           ~{(parseFloat(betAmount) * 0.5).toFixed(2)}
                         </span>
                       </div>

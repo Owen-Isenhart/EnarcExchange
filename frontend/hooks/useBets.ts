@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { betsService } from '@/services';
 import { useUiStore } from '@/store/uiStore';
+import { useAuthStore } from '@/store/authStore';
 import { useAuth } from './useAuth';
 import { QUERY_KEYS, DEFAULT_PAGE_SIZE } from '@/config/api';
 import type { CreateBetRequest, SellBetRequest } from '@/types';
@@ -66,22 +67,28 @@ export function useMarketBets(marketId: number) {
 export function usePlaceBet() {
   const queryClient = useQueryClient();
   const { addNotification } = useUiStore();
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
 
   return useMutation({
     mutationFn: (data: CreateBetRequest) => betsService.placeBet(data),
-    onSuccess: (bet: any) => {
-      // Invalidate all bet-related queries
+    onSuccess: async (bet: any) => {
+      // Immediately invalidate with higher priority
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.USERS.CURRENT,
+        exact: true,
+      });
+
+      // Then refetch to get immediate update
+      if (refetchUser) {
+        await refetchUser();
+      }
+
+      // Invalidate all other related queries
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.BETS.ALL,
       });
-      
-      // Invalidate user data if we have user ID
+
       if (user?.id) {
-        // Refetch user detail to update balance
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.USERS.CURRENT,
-        });
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.USERS.DETAIL(user.id),
         });
@@ -94,12 +101,12 @@ export function usePlaceBet() {
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.BETS.USER(user.id),
         });
-        // Force refetch of market prices
+        // Refetch market prices since they likely changed
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.MARKETS.ALL,
         });
       }
-      
+
       addNotification({
         type: 'success',
         message: 'Bet placed successfully!',
@@ -118,19 +125,27 @@ export function usePlaceBet() {
 export function useSellBet() {
   const queryClient = useQueryClient();
   const { addNotification } = useUiStore();
-  const { user } = useAuth();
+  const { user, refetchUser } = useAuth();
 
   return useMutation({
     mutationFn: (data: SellBetRequest) => betsService.sellBet(data),
-    onSuccess: (bet: any) => {
+    onSuccess: async (bet: any) => {
+      // Immediately invalidate with higher priority
+      await queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.USERS.CURRENT,
+        exact: true,
+      });
+
+      // Then refetch to get immediate update
+      if (refetchUser) {
+        await refetchUser();
+      }
+
       queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.BETS.ALL,
       });
-      
+
       if (user?.id) {
-        queryClient.invalidateQueries({
-          queryKey: QUERY_KEYS.USERS.CURRENT,
-        });
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.USERS.DETAIL(user.id),
         });
@@ -143,8 +158,11 @@ export function useSellBet() {
         queryClient.invalidateQueries({
           queryKey: QUERY_KEYS.BETS.USER(user.id),
         });
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.MARKETS.ALL,
+        });
       }
-      
+
       addNotification({
         type: 'success',
         message: 'Bet sold successfully!',

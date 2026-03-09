@@ -54,21 +54,21 @@ export const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
           ref={ref}
           className={cn(
             'relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto',
-            'rounded-lg border border-white/10 bg-[#050505] p-6 shadow-2xl',
+            'rounded-lg border border-primary/20 bg-surface p-6 shadow-2xl',
             className
           )}
         >
           {/* Header */}
           {(title || closeButton) && (
             <div className="mb-4 flex items-center justify-between">
-              {title && <h2 className="text-xl font-semibold text-white">{title}</h2>}
+              {title && <h2 className="text-xl font-semibold text-primary">{title}</h2>}
               {closeButton && (
                 <button
                   onClick={onClose}
-                  className="ml-auto inline-flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors"
+                  className="ml-auto inline-flex items-center justify-center p-1 rounded-lg hover:bg-primary/10 transition-colors"
                   aria-label="Close modal"
                 >
-                  <X className="h-5 w-5 text-white" />
+                  <X className="h-5 w-5 text-primary" />
                 </button>
               )}
             </div>

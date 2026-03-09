@@ -52,7 +52,7 @@ export const MultiOutcomePriceChart = ({
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-white/70">Loading price history...</p>
+          <p className="text-secondary">Loading price history...</p>
         </CardContent>
       </Card>
     );
@@ -62,7 +62,7 @@ export const MultiOutcomePriceChart = ({
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-white/70">No price history available</p>
+          <p className="text-secondary">No price history available</p>
         </CardContent>
       </Card>
     );
@@ -75,7 +75,7 @@ export const MultiOutcomePriceChart = ({
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-white/70">No price data available yet</p>
+          <p className="text-secondary">No price data available yet</p>
         </CardContent>
       </Card>
     );

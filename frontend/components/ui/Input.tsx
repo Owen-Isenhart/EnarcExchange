@@ -21,7 +21,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-white">
+          <label htmlFor={inputId} className="text-sm font-medium text-primary">
             {label}
           </label>
         )}
@@ -29,17 +29,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10',
-            'text-white placeholder-white/40 transition-all duration-200',
-            'focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41]',
+            'w-full px-4 py-2 rounded-lg bg-surface/50 border border-primary/20',
+            'text-primary placeholder-primary/40 transition-all duration-200',
+            'focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            error && 'border-[#FF8C00] focus:border-[#FF8C00] focus:ring-[#FF8C00]',
+            error && 'border-error focus:border-error focus:ring-error',
             className
           )}
           {...props}
         />
-        {error && <p className="text-sm text-[#FF8C00]">{error}</p>}
-        {helpText && !error && <p className="text-sm text-white/40">{helpText}</p>}
+        {error && <p className="text-sm text-error">{error}</p>}
+        {helpText && !error && <p className="text-sm text-secondary">{helpText}</p>}
       </div>
     );
   }
@@ -61,7 +61,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <div className="flex flex-col gap-2">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-white">
+          <label htmlFor={inputId} className="text-sm font-medium text-primary">
             {label}
           </label>
         )}
@@ -69,18 +69,18 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10',
-            'text-white placeholder-white/40 transition-all duration-200',
-            'focus:outline-none focus:border-[#00FF41] focus:ring-1 focus:ring-[#00FF41]',
+            'w-full px-4 py-2 rounded-lg bg-surface/50 border border-primary/20',
+            'text-primary placeholder-primary/40 transition-all duration-200',
+            'focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'resize-vertical min-h-32',
-            error && 'border-[#FF8C00] focus:border-[#FF8C00] focus:ring-[#FF8C00]',
+            error && 'border-error focus:border-error focus:ring-error',
             className
           )}
           {...props}
         />
-        {error && <p className="text-sm text-[#FF8C00]">{error}</p>}
-        {helpText && !error && <p className="text-sm text-white/40">{helpText}</p>}
+        {error && <p className="text-sm text-error">{error}</p>}
+        {helpText && !error && <p className="text-sm text-secondary">{helpText}</p>}
       </div>
     );
   }

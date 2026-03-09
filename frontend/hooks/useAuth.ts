@@ -20,11 +20,12 @@ export function useAuth() {
     data: currentUser,
     isLoading: isLoadingUser,
     error: userError,
+    refetch: refetchCurrentUser,
   } = useQuery({
     queryKey: QUERY_KEYS.USERS.CURRENT,
     queryFn: () => authService.getCurrentUser(),
-    enabled: !!token && !user, // Only fetch if we have token but no user
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    enabled: !!token, // Always fetch if we have a token
+    staleTime: 1000 * 60, // 1 minute - shorter to catch balance updates
   });
 
   // Login mutation
@@ -88,5 +89,6 @@ export function useAuth() {
     signup: signupMutation.mutate,
     signupAsync: signupMutation.mutateAsync,
     logout: handleLogout,
+    refetchUser: refetchCurrentUser,
   };
 }
