@@ -34,10 +34,11 @@ const betsService = {
 
   getUserBets: async (userId, limit, offset) => {
     const bets = await pool.query(
-      `SELECT b.*, u.username, mo.description as outcome_description 
+      `SELECT b.*, u.username, mo.description as outcome_description, m.name as market_name
        FROM bets b 
        JOIN users u ON b.user_id = u.id 
        JOIN market_outcomes mo ON b.outcome_id = mo.id 
+       JOIN markets m ON mo.market_id = m.id
        WHERE b.user_id = $1 
        ORDER BY b.created_at DESC 
        LIMIT $2 OFFSET $3`,
@@ -57,10 +58,11 @@ const betsService = {
 
   getMarketBets: async (marketId, limit, offset) => {
     const bets = await pool.query(
-      `SELECT b.*, u.username, mo.description as outcome_description 
+      `SELECT b.*, u.username, mo.description as outcome_description, m.name as market_name
        FROM bets b 
        JOIN users u ON b.user_id = u.id 
        JOIN market_outcomes mo ON b.outcome_id = mo.id 
+       JOIN markets m ON mo.market_id = m.id
        WHERE mo.market_id = $1 
        ORDER BY b.created_at DESC 
        LIMIT $2 OFFSET $3`,
@@ -86,9 +88,9 @@ const betsService = {
     try {
       await client.query("BEGIN");
 
-      // Check user has sufficient tokens
+      // Check user has sufficient tokens (lock user row to prevent concurrent balance updates)
       const userResult = await client.query(
-        "SELECT token_balance FROM users WHERE id = $1",
+        "SELECT token_balance FROM users WHERE id = $1 FOR UPDATE",
         [userId]
       );
 
@@ -109,7 +111,7 @@ const betsService = {
         `SELECT o.id, m.id as market_id, m.status 
          FROM market_outcomes o 
          JOIN markets m ON o.market_id = m.id 
-         WHERE o.id = $1`,
+         WHERE o.id = $1 FOR UPDATE OF m`,
         [outcomeId]
       );
 
@@ -133,7 +135,7 @@ const betsService = {
         amount,
         client
       );
-      const { shares } = lmsrResult;
+      const { shares } = lmsrResult; // Precise shares as string for storage
 
       const betResult = await client.query(
         `INSERT INTO bets (user_id, outcome_id, amount, shares)
@@ -183,7 +185,7 @@ const betsService = {
 
       const outcomeResult = await client.query(
         `SELECT o.id, m.id as market_id, m.status FROM market_outcomes o
-         JOIN markets m ON o.market_id = m.id WHERE o.id = $1`,
+         JOIN markets m ON o.market_id = m.id WHERE o.id = $1 FOR UPDATE OF m, o`,
         [outcomeId]
       );
       if (outcomeResult.rows.length === 0) {
@@ -196,6 +198,17 @@ const betsService = {
         await client.query("ROLLBACK");
         client.release();
         throw new Error("Market is not open for selling");
+      }
+
+      // Lock user row to protect against concurrent balance updates
+      const userCheckResult = await client.query(
+        "SELECT token_balance FROM users WHERE id = $1 FOR UPDATE",
+        [userId]
+      );
+      if (userCheckResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+        client.release();
+        throw new Error("User not found");
       }
 
       const posResult = await client.query(
@@ -213,19 +226,22 @@ const betsService = {
       const lmsrResult = await lmsrService.applySellAndRecordPrices(marketId, outcomeId, shares, client);
       const { tokensReceived, newPricesByOutcomeId } = lmsrResult;
 
+      // Convert Decimal to string for storage in PostgreSQL NUMERIC columns
+      const tokensReceivedString = tokensReceived.toString();
+
       const sellResult = await client.query(
         `INSERT INTO sells (user_id, outcome_id, shares, tokens_received)
          VALUES ($1, $2, $3, $4) RETURNING *`,
-        [userId, outcomeId, shares, tokensReceived]
+        [userId, outcomeId, shares, tokensReceivedString]
       );
 
       await client.query(
         "UPDATE users SET token_balance = token_balance + $1 WHERE id = $2",
-        [tokensReceived, userId]
+        [tokensReceivedString, userId]
       );
       await client.query(
         `INSERT INTO transactions (user_id, amount, reason) VALUES ($1, $2, $3)`,
-        [userId, tokensReceived, `Sold ${shares} shares of outcome ${outcomeId}`]
+        [userId, tokensReceivedString, `Sold ${shares} shares of outcome ${outcomeId}`]
       );
 
       await client.query("COMMIT");

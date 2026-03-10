@@ -1,454 +1,875 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Enarc Exchange API",
-    "description": "Prediction market API for UTD - auth, markets, LMSR pricing, bets, sell, resolve, seed, positions. Use **Authorize** (top right) to set your JWT for protected routes.",
+    "title": "enarcExchange API",
+    "description": "Prediction Market API for UTD",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
   "basePath": "/",
-  "schemes": ["http"],
+  "schemes": [
+    "http"
+  ],
   "securityDefinitions": {
     "bearerAuth": {
       "type": "apiKey",
+      "scheme": "bearer",
+      "bearerFormat": "JWT",
       "name": "Authorization",
       "in": "header",
-      "description": "Enter: Bearer YOUR_JWT_TOKEN (from login/signup)"
+      "description": "JWT authorization header"
     }
   },
   "paths": {
     "/": {
       "get": {
-        "tags": ["Root"],
-        "summary": "API root",
-        "description": "Links to all main endpoints.",
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/health": {
       "get": {
-        "tags": ["Health"],
-        "summary": "Health check",
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/health/db": {
       "get": {
-        "tags": ["Health"],
-        "summary": "DB connection check",
-        "responses": {"200": {"description": "DB connected"}, "503": {"description": "DB disconnected"}}
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        }
       }
     },
     "/api/auth/signup": {
       "post": {
-        "tags": ["Auth"],
-        "summary": "Sign up",
-        "description": "Email must be @utdallas.edu. Password min 8 chars. Returns token and user.",
-        "security": [],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": {
-            "type": "object",
-            "required": ["email", "username", "password"],
-            "properties": {
-              "email": { "type": "string", "example": "you@utdallas.edu" },
-              "username": { "type": "string", "example": "YourName" },
-              "password": { "type": "string", "example": "password123" }
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "username": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
             }
           }
-        }],
-        "responses": {"201": {"description": "Created"}, "400": {"description": "Bad request"}, "409": {"description": "Email/username exists"}, "500": {"description": "Server error"}}
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/auth/login": {
       "post": {
-        "tags": ["Auth"],
-        "summary": "Log in",
-        "description": "Returns JWT. Use it in Authorize for protected routes.",
-        "security": [],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": {
-            "type": "object",
-            "required": ["email", "password"],
-            "properties": {
-              "email": { "type": "string", "example": "you@utdallas.edu" },
-              "password": { "type": "string", "example": "password123" }
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
             }
           }
-        }],
-        "responses": {"200": {"description": "OK"}, "400": {"description": "Bad request"}, "401": {"description": "Invalid credentials"}, "500": {"description": "Server error"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/auth/me": {
       "get": {
-        "tags": ["Auth"],
-        "summary": "Current user",
-        "description": "Requires Authorization: Bearer &lt;token&gt;",
-        "security": [{"bearerAuth": []}],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "404": {"description": "User not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
       }
     },
-    "/api/markets": {
+    "/api/markets/": {
       "get": {
-        "tags": ["Markets"],
-        "summary": "List markets",
-        "parameters": [
-          { "in": "query", "name": "page", "type": "integer", "example": 1 },
-          { "in": "query", "name": "limit", "type": "integer", "example": 10 }
-        ],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "post": {
-        "tags": ["Markets"],
-        "summary": "Create market (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": {
-            "type": "object",
-            "required": ["name", "start_time", "end_time"],
-            "properties": {
-              "name": { "type": "string" },
-              "description": { "type": "string" },
-              "start_time": { "type": "string", "format": "date-time" },
-              "end_time": { "type": "string", "format": "date-time" },
-              "liquidity_parameter": { "type": "number", "example": 100 }
-            }
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
           }
-        }],
-        "responses": {"201": {"description": "Created"}, "400": {"description": "Bad request"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}}
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/markets/{id}/prices": {
       "get": {
-        "tags": ["Markets", "LMSR"],
-        "summary": "LMSR prices",
-        "description": "Current marginal prices and quantities for all outcomes.",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Market not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/markets/{id}/quote": {
       "get": {
-        "tags": ["Markets", "LMSR"],
-        "summary": "Quote (by tokens or shares)",
-        "description": "Use outcome_id + amount (tokens) OR outcome_id + shares. Returns cost/shares and new prices.",
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "query", "name": "outcome_id", "required": true, "type": "integer" },
-          { "in": "query", "name": "amount", "type": "integer", "description": "Tokens to spend" },
-          { "in": "query", "name": "shares", "type": "number", "description": "Shares to buy" }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "400": {"description": "Need amount or shares"}, "404": {"description": "Market/outcome not found"}}
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/markets/{id}/resolve": {
       "post": {
-        "tags": ["Markets", "LMSR"],
-        "summary": "Resolve market (Admin)",
-        "description": "Set winning outcome and pay 1 token per share to winning bets.",
-        "security": [{"bearerAuth": []}],
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "required": true, "schema": { "type": "object", "required": ["winning_outcome_id"], "properties": { "winning_outcome_id": { "type": "integer" } } } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "400": {"description": "Already resolved or invalid outcome"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Market not found"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/markets/{id}/seed": {
       "post": {
-        "tags": ["Markets", "LMSR"],
-        "summary": "Seed liquidity (Admin)",
-        "description": "Set initial outcome quantities. Market must be open and have no bets. Body: quantities array [q0,q1,...] or object by outcome_id.",
-        "security": [{"bearerAuth": []}],
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "required": true, "schema": { "type": "object", "required": ["quantities"], "properties": { "quantities": { "type": "array", "items": { "type": "number" } } } } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "400": {"description": "Market has bets / not open"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Market not found"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/markets/{id}": {
       "get": {
-        "tags": ["Markets"],
-        "summary": "Get market by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "put": {
-        "tags": ["Markets"],
-        "summary": "Update market (Admin)",
-        "security": [{"bearerAuth": []}],
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "schema": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "status": { "type": "string", "enum": ["open", "closed", "resolved"] } } } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "400": {"description": "Bad request"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       },
       "delete": {
-        "tags": ["Markets"],
-        "summary": "Delete market (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
-    "/api/bets": {
+    "/api/bets/": {
       "get": {
-        "tags": ["Bets"],
-        "summary": "List bets",
-        "parameters": [
-          { "in": "query", "name": "page", "type": "integer" },
-          { "in": "query", "name": "limit", "type": "integer" }
-        ],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "post": {
-        "tags": ["Bets", "LMSR"],
-        "summary": "Place bet",
-        "description": "Spend tokens; receive shares (LMSR). Response includes new_prices.",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": { "type": "object", "required": ["outcome_id", "amount"], "properties": { "outcome_id": { "type": "integer", "example": 1 }, "amount": { "type": "integer", "example": 50 } } }
-        }],
-        "responses": {"201": {"description": "Created"}, "400": {"description": "Insufficient balance / market closed"}, "401": {"description": "Unauthorized"}, "404": {"description": "Outcome not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "x-idempotency-key",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
     "/api/bets/sell": {
       "post": {
-        "tags": ["Bets", "LMSR"],
-        "summary": "Sell shares",
-        "description": "Sell shares back to market. Market must be open; shares ≤ your position.",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{
-          "in": "body",
-          "name": "body",
-          "required": true,
-          "schema": { "type": "object", "required": ["outcome_id", "shares"], "properties": { "outcome_id": { "type": "integer", "example": 1 }, "shares": { "type": "number", "example": 20 } } }
-        }],
-        "responses": {"201": {"description": "OK"}, "400": {"description": "Insufficient shares / market not open"}, "401": {"description": "Unauthorized"}, "404": {"description": "Outcome not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "x-idempotency-key",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "outcome_id": {
+                  "example": "any"
+                },
+                "shares": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/bets/user/{userId}": {
       "get": {
-        "tags": ["Bets"],
-        "summary": "Bets by user",
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "userId", "required": true, "type": "integer" },
-          { "in": "query", "name": "page", "type": "integer" },
-          { "in": "query", "name": "limit", "type": "integer" }
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}}
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/bets/market/{marketId}": {
       "get": {
-        "tags": ["Bets"],
-        "summary": "Bets by market",
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "marketId", "required": true, "type": "integer" },
-          { "in": "query", "name": "page", "type": "integer" },
-          { "in": "query", "name": "limit", "type": "integer" }
+          {
+            "name": "marketId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}}
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/bets/{id}": {
       "get": {
-        "tags": ["Bets"],
-        "summary": "Get bet by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/users/me/positions": {
       "get": {
-        "tags": ["Users", "LMSR"],
-        "summary": "My positions",
-        "description": "Shares per outcome (bets - sells). Optional: ?market_id=1",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "query", "name": "market_id", "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
     "/api/users/{userId}/positions": {
       "get": {
-        "tags": ["Users", "LMSR"],
-        "summary": "User positions",
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "userId", "required": true, "type": "integer" },
-          { "in": "query", "name": "market_id", "type": "integer" }
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
-    "/api/users": {
+    "/api/users/": {
       "get": {
-        "tags": ["Users"],
-        "summary": "List users",
-        "parameters": [{ "in": "query", "name": "page", "type": "integer" }, { "in": "query", "name": "limit", "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/users/username/{username}": {
       "get": {
-        "tags": ["Users"],
-        "summary": "Get user by username",
-        "parameters": [{ "in": "path", "name": "username", "required": true, "type": "string" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/users/{userId}/stats": {
       "get": {
-        "tags": ["Users"],
-        "summary": "User stats",
-        "parameters": [{ "in": "path", "name": "userId", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/users/{id}": {
       "get": {
-        "tags": ["Users"],
-        "summary": "Get user by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
-    "/api/transactions": {
+    "/api/transactions/": {
       "get": {
-        "tags": ["Transactions"],
-        "summary": "List transactions",
-        "parameters": [{ "in": "query", "name": "page", "type": "integer" }, { "in": "query", "name": "limit", "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "post": {
-        "tags": ["Transactions"],
-        "summary": "Create transaction",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "body", "name": "body", "required": true, "schema": { "type": "object", "properties": { "user_id": { "type": "integer" }, "amount": { "type": "integer" }, "reason": { "type": "string" } } } }],
-        "responses": {"201": {"description": "Created"}, "401": {"description": "Unauthorized"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
       }
     },
     "/api/transactions/user/{userId}": {
       "get": {
-        "tags": ["Transactions"],
-        "summary": "Transactions by user",
-        "parameters": [{ "in": "path", "name": "userId", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/transactions/{id}": {
       "get": {
-        "tags": ["Transactions"],
-        "summary": "Get transaction by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
-    "/api/outcomes": {
+    "/api/outcomes/": {
       "get": {
-        "tags": ["Outcomes"],
-        "summary": "List outcomes",
-        "parameters": [{ "in": "query", "name": "page", "type": "integer" }, { "in": "query", "name": "limit", "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "post": {
-        "tags": ["Outcomes"],
-        "summary": "Create outcome (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "body", "name": "body", "required": true, "schema": { "type": "object", "required": ["market_id", "description"], "properties": { "market_id": { "type": "integer" }, "description": { "type": "string" } } } }],
-        "responses": {"201": {"description": "Created"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Market not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/outcomes/market/{marketId}": {
       "get": {
-        "tags": ["Outcomes"],
-        "summary": "Outcomes by market",
-        "parameters": [{ "in": "path", "name": "marketId", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "marketId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/outcomes/{id}": {
       "get": {
-        "tags": ["Outcomes"],
-        "summary": "Get outcome by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "put": {
-        "tags": ["Outcomes"],
-        "summary": "Update outcome (Admin)",
-        "security": [{"bearerAuth": []}],
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "schema": { "type": "object", "properties": { "description": { "type": "string" } } } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       },
       "delete": {
-        "tags": ["Outcomes"],
-        "summary": "Delete outcome (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
-    "/api/prices": {
+    "/api/prices/": {
       "get": {
-        "tags": ["Prices"],
-        "summary": "List price history",
-        "parameters": [{ "in": "query", "name": "page", "type": "integer" }, { "in": "query", "name": "limit", "type": "integer" }],
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "post": {
-        "tags": ["Prices"],
-        "summary": "Create price record (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "body", "name": "body", "required": true, "schema": { "type": "object", "required": ["outcome_id", "price"], "properties": { "outcome_id": { "type": "integer" }, "price": { "type": "number", "minimum": 0, "maximum": 1 } } } }],
-        "responses": {"201": {"description": "Created"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Outcome not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/api/prices/latest": {
       "get": {
-        "tags": ["Prices"],
-        "summary": "Latest price per outcome",
-        "responses": {"200": {"description": "OK"}}
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/prices/outcome/{outcomeId}": {
       "get": {
-        "tags": ["Prices"],
-        "summary": "Price history for outcome",
-        "parameters": [{ "in": "path", "name": "outcomeId", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "outcomeId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/prices/{id}": {
       "get": {
-        "tags": ["Prices"],
-        "summary": "Get price record by ID",
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "404": {"description": "Not found"}}
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
       },
       "put": {
-        "tags": ["Prices"],
-        "summary": "Update price (Admin)",
-        "security": [{"bearerAuth": []}],
+        "description": "",
         "parameters": [
-          { "in": "path", "name": "id", "required": true, "type": "integer" },
-          { "in": "body", "name": "body", "schema": { "type": "object", "properties": { "price": { "type": "number", "minimum": 0, "maximum": 1 } } } }
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
         ],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
+        "responses": {
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       },
       "delete": {
         "description": "",
@@ -1587,11 +2008,6 @@
             }
           }
         }
-        "tags": ["Prices"],
-        "summary": "Delete price (Admin)",
-        "security": [{"bearerAuth": []}],
-        "parameters": [{ "in": "path", "name": "id", "required": true, "type": "integer" }],
-        "responses": {"200": {"description": "OK"}, "401": {"description": "Unauthorized"}, "403": {"description": "Admin required"}, "404": {"description": "Not found"}}
       }
     }
   }

@@ -1,5 +1,7 @@
+const Decimal = require("decimal.js");
+
 /**
- * Logarithmic Market Scoring Rule (LMSR) — pure math only.
+ * Logarithmic Market Scoring Rule (LMSR) — using Decimal.js for precise math.
  * See: Gnosis LMSR primer, Oddhead blog, README links.
  *
  * Cost: C(q) = b * ln(sum_i exp(q_i / b))
@@ -7,100 +9,121 @@
  * Cost to move from q to q': cost = C(q') - C(q)
  */
 
+// Set Decimal precision to 20 significant digits for financial calculations
+Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_UP });
+
 /**
- * LMSR cost function. q = array of quantities (shares outstanding) per outcome.
- * @param {number[]} q - quantities per outcome
- * @param {number} b - liquidity parameter
- * @returns {number}
+ * LMSR cost function using Decimal.js for precision.
+ * @param {(number|Decimal)[]} q - quantities per outcome
+ * @param {number|Decimal} b - liquidity parameter
+ * @returns {Decimal}
  */
 function cost(q, b) {
-  if (b <= 0) throw new Error("LMSR: b must be positive");
+  const bDec = new Decimal(b);
+  if (bDec.lte(0)) throw new Error("LMSR: b must be positive");
   const n = q.length;
-  if (n === 0) return 0;
-  let sum = 0;
+  if (n === 0) return new Decimal(0);
+  
+  let sum = new Decimal(0);
   for (let i = 0; i < n; i++) {
-    sum += Math.exp(q[i] / b);
+    const qi = new Decimal(q[i] || 0);
+    sum = sum.plus(Decimal.exp(qi.dividedBy(bDec)));
   }
-  return b * Math.log(sum);
+  return bDec.times(Decimal.ln(sum));
 }
 
 /**
  * Marginal price (probability) for each outcome. Sum of returned array = 1.
- * @param {number[]} q - quantities per outcome
- * @param {number} b - liquidity parameter
- * @returns {number[]}
+ * @param {(number|Decimal)[]} q - quantities per outcome
+ * @param {number|Decimal} b - liquidity parameter
+ * @returns {Decimal[]}
  */
 function marginalPrices(q, b) {
-  if (b <= 0) throw new Error("LMSR: b must be positive");
+  const bDec = new Decimal(b);
+  if (bDec.lte(0)) throw new Error("LMSR: b must be positive");
   const n = q.length;
   if (n === 0) return [];
-  let sumExp = 0;
+  
+  let sumExp = new Decimal(0);
   const expQ = q.map((qi) => {
-    const e = Math.exp(qi / b);
-    sumExp += e;
+    const qDec = new Decimal(qi || 0);
+    const e = Decimal.exp(qDec.dividedBy(bDec));
+    sumExp = sumExp.plus(e);
     return e;
   });
-  return expQ.map((e) => e / sumExp);
+  return expQ.map((e) => e.dividedBy(sumExp));
 }
 
 /**
  * Cost to buy `shares` of outcome at index `outcomeIndex` (0-based).
- * @param {number[]} q - current quantities
- * @param {number} b - liquidity parameter
+ * @param {(number|Decimal)[]} q - current quantities
+ * @param {number|Decimal} b - liquidity parameter
  * @param {number} outcomeIndex - index of outcome (0-based)
- * @param {number} shares - number of shares to buy
- * @returns {number}
+ * @param {number|Decimal} shares - number of shares to buy
+ * @returns {Decimal}
  */
 function costToBuy(q, b, outcomeIndex, shares) {
-  if (shares <= 0) return 0;
-  const qNew = q.slice();
-  qNew[outcomeIndex] = (qNew[outcomeIndex] || 0) + shares;
-  return cost(qNew, b) - cost(q, b);
+  const sharesDec = new Decimal(shares);
+  if (sharesDec.lte(0)) return new Decimal(0);
+  const qNew = q.map((x) => new Decimal(x || 0));
+  qNew[outcomeIndex] = qNew[outcomeIndex].plus(sharesDec);
+  return cost(qNew, b).minus(cost(q, b));
 }
 
 /**
  * How many shares of outcome at `outcomeIndex` can be bought for `costAmount` tokens.
  * Uses binary search (cost is increasing in shares).
- * @param {number[]} q - current quantities
- * @param {number} b - liquidity parameter
+ * @param {(number|Decimal)[]} q - current quantities
+ * @param {number|Decimal} b - liquidity parameter
  * @param {number} outcomeIndex - index of outcome (0-based)
- * @param {number} costAmount - tokens to spend
- * @param {number} [tolerance=1e-6] - stop when cost error is below this
- * @returns {{ shares: number, cost: number }}
+ * @param {number|Decimal} costAmount - tokens to spend
+ * @param {number} [tolerance=1e-9] - stop when cost error is below this
+ * @returns {{ shares: Decimal, cost: Decimal }}
  */
-function sharesForCost(q, b, outcomeIndex, costAmount, tolerance = 1e-6) {
-  if (costAmount <= 0) return { shares: 0, cost: 0 };
-  let low = 0;
-  let high = costAmount * 2; // upper bound: cost >= shares * min_price, so shares <= cost / min_price
-  const n = q.length;
-  const maxIter = 100;
+function sharesForCost(q, b, outcomeIndex, costAmount, tolerance = 1e-9) {
+  const costAmountDec = new Decimal(costAmount);
+  if (costAmountDec.lte(0)) return { shares: new Decimal(0), cost: new Decimal(0) };
+  
+  let low = new Decimal(0);
+  let high = costAmountDec.times(2);
+  const toleranceDec = new Decimal(tolerance);
+  const maxIter = 150;
+  
   for (let iter = 0; iter < maxIter; iter++) {
-    const mid = (low + high) / 2;
+    const mid = low.plus(high).dividedBy(2);
     const c = costToBuy(q, b, outcomeIndex, mid);
-    if (Math.abs(c - costAmount) < tolerance) {
+    const diff = c.minus(costAmountDec).abs();
+    
+    if (diff.lte(toleranceDec)) {
       return { shares: mid, cost: c };
     }
-    if (c < costAmount) low = mid;
-    else high = mid;
+    if (c.lt(costAmountDec)) {
+      low = mid;
+    } else {
+      high = mid;
+    }
   }
-  const shares = (low + high) / 2;
-  return { shares, cost: costToBuy(q, b, outcomeIndex, shares) };
+  
+  const sharesResult = low.plus(high).dividedBy(2);
+  return { shares: sharesResult, cost: costToBuy(q, b, outcomeIndex, sharesResult) };
 }
 
 /**
  * Cost to sell `shares` of outcome at index `outcomeIndex` (negative cost = payout to user).
- * @param {number[]} q - current quantities
- * @param {number} b - liquidity parameter
+ * @param {(number|Decimal)[]} q - current quantities
+ * @param {number|Decimal} b - liquidity parameter
  * @param {number} outcomeIndex - index of outcome (0-based)
- * @param {number} shares - number of shares to sell
- * @returns {number} - positive = user pays, negative = user receives
+ * @param {number|Decimal} shares - number of shares to sell
+ * @returns {Decimal} - negative when selling (user receives tokens)
  */
 function costToSell(q, b, outcomeIndex, shares) {
-  if (shares <= 0) return 0;
-  const qNew = q.slice();
-  const current = qNew[outcomeIndex] || 0;
-  qNew[outcomeIndex] = Math.max(0, current - shares);
-  return cost(qNew, b) - cost(q, b); // negative when selling
+  const sharesDec = new Decimal(shares);
+  if (sharesDec.lte(0)) return new Decimal(0);
+  const qNew = q.map((x) => new Decimal(x || 0));
+  const currentQi = qNew[outcomeIndex];
+  const newQi = currentQi.minus(sharesDec);
+  qNew[outcomeIndex] = Decimal.max(new Decimal(0), newQi);
+  return cost(qNew, b).minus(cost(q, b));
 }
 
 module.exports = {
@@ -109,4 +132,6 @@ module.exports = {
   costToBuy,
   sharesForCost,
   costToSell,
+  Decimal, // Export Decimal class for use in services
 };
+

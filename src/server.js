@@ -52,6 +52,24 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const betsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: process.env.NODE_ENV === "production" ? 30 : 100,
+  message: "Too many bet requests, please wait before trying again",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "GET", // Don't rate limit GET requests
+});
+
+const marketsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: process.env.NODE_ENV === "production" ? 20 : 60,
+  message: "Too many market requests, please wait before trying again",
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method === "GET", // Don't rate limit GET requests
+});
+
 app.get("/", (_req, res) =>
   res.json({
     name: "Enarc Exchange",
@@ -87,8 +105,8 @@ app.get("/health/db", (_req, res) => {
 });
 
 app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/markets", marketRoutes);
-app.use("/api/bets", betRoutes);
+app.use("/api/markets", marketsLimiter, marketRoutes);
+app.use("/api/bets", betsLimiter, betRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/transactions", transactionsRoutes);
 app.use("/api/outcomes", outcomesRoutes);

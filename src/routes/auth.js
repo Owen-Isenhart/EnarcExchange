@@ -68,7 +68,7 @@ router.post(
       const user = await authService.createUser(email, username, passwordHash);
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, is_admin: user.is_admin || false },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
@@ -76,8 +76,7 @@ router.post(
       return res.status(201).json({ token, user });
     } catch (err) {
       console.error("Signup error:", err);
-      const message = process.env.NODE_ENV === "production" ? "Internal server error" : err.message;
-      return res.status(500).json({ error: message });
+      return res.status(500).json({ error: "Internal server error" });
     }
   })
 );
@@ -113,7 +112,7 @@ router.post(
       }
 
       const token = jwt.sign(
-        { id: user.id, email: user.email, username: user.username },
+        { id: user.id, email: user.email, username: user.username, is_admin: user.is_admin || false },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );

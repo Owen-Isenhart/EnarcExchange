@@ -303,8 +303,14 @@ describe("createBet", () => {
   });
 
   test("returns 201 with the created bet on success", async () => {
-    const fakeBet = { id: 10, user_id: 1, outcome_id: 1, amount: 50 };
-    betsService.createBet.mockResolvedValue(fakeBet);
+    const fakeBet = { id: 10, user_id: 1, outcome_id: 1, amount: 50, shares: 100 };
+    const marketId = 5;
+    const newPrices = { 1: 0.5, 2: 0.5 };
+    betsService.createBet.mockResolvedValue({
+      bet: fakeBet,
+      marketId,
+      newPricesByOutcomeId: newPrices,
+    });
 
     const req = mockReq({ body: { outcome_id: 1, amount: 50 } });
     const res = mockRes();
@@ -312,7 +318,16 @@ describe("createBet", () => {
     await createBet(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(fakeBet);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: fakeBet.id,
+        user_id: fakeBet.user_id,
+        outcome_id: fakeBet.outcome_id,
+        amount: fakeBet.amount,
+        market_id: marketId,
+        new_prices: newPrices,
+      })
+    );
   });
 
   test("returns 500 on unexpected service error", async () => {

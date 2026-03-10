@@ -5,10 +5,10 @@ const marketsService = {
     const markets = await pool.query(
       `SELECT m.id, m.name, m.description, m.created_by, m.liquidity_parameter, m.winning_outcome_id,
               m.start_time, m.end_time, m.status, m.created_at,
-              u.username AS created_by_username
+              COALESCE(u.username, '[deleted]') AS created_by_username
        FROM markets m
        LEFT JOIN users u ON m.created_by = u.id
-       ORDER BY m.created_at DESC
+       ORDER BY (CASE WHEN m.status = 'open' THEN 0 ELSE 1 END), m.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
@@ -25,7 +25,7 @@ const marketsService = {
     const result = await pool.query(
       `SELECT m.id, m.name, m.description, m.created_by, m.liquidity_parameter, m.winning_outcome_id,
               m.start_time, m.end_time, m.status, m.created_at,
-              u.username AS created_by_username
+              COALESCE(u.username, '[deleted]') AS created_by_username
        FROM markets m
        LEFT JOIN users u ON m.created_by = u.id
        WHERE m.id = $1`,
@@ -146,23 +146,48 @@ const marketsService = {
       );
 
       const payouts = [];
+
+      // Process each winning bet
       for (const bet of betsResult.rows) {
-        const payout = Math.round(Number(bet.shares) || 0);
-        if (payout <= 0) continue;
-        await client.query(
-          "UPDATE users SET token_balance = token_balance + $1 WHERE id = $2",
-          [payout, bet.user_id]
-        );
+        const shares = Number(bet.shares) || 0;
+        if (shares <= 0) continue;
+
+        // Store exact payout amount (with fractional tokens)
         await client.query(
           "UPDATE bets SET payout_amount = $1, is_settled = TRUE WHERE id = $2",
-          [payout, bet.id]
+          [shares.toString(), bet.id]
         );
+
+        // Add payout to user's token balance using PostgreSQL NUMERIC arithmetic
+        // This preserves fractional tokens (e.g., 10.7 shares = 10.7 tokens)
+        await client.query(
+          "UPDATE users SET token_balance = token_balance + $1 WHERE id = $2",
+          [shares.toString(), bet.user_id]
+        );
+
+        // Record transaction with precise amount
         await client.query(
           "INSERT INTO transactions (user_id, amount, reason) VALUES ($1, $2, $3)",
-          [bet.user_id, payout, `Bet won (market ${marketId} resolved)`]
+          [bet.user_id, shares.toString(), `Bet won (market ${marketId} resolved)`]
         );
-        payouts.push({ bet_id: bet.id, user_id: bet.user_id, shares: bet.shares, payout_amount: payout });
+
+        payouts.push({
+          bet_id: bet.id,
+          user_id: bet.user_id,
+          shares: shares,
+          payout_amount: shares,
+        });
       }
+
+      // Mark all losing bets as settled with payout_amount = 0
+      await client.query(
+        `UPDATE bets SET payout_amount = 0, is_settled = TRUE 
+         WHERE outcome_id IN (
+           SELECT id FROM market_outcomes 
+           WHERE market_id = $1 AND id != $2
+         ) AND (is_settled IS NOT TRUE OR is_settled = FALSE)`,
+        [marketId, winningOutcomeId]
+      );
 
       await client.query("COMMIT");
       return {
@@ -198,6 +223,12 @@ const marketsService = {
         await client.query("ROLLBACK");
         throw new Error("Market must be open to seed");
       }
+      // Lock all outcomes for this market to prevent concurrent bets while seeding
+      const outcomeLockResult = await client.query(
+        `SELECT id FROM market_outcomes WHERE market_id = $1 FOR UPDATE`,
+        [marketId]
+      );
+
       const betCountResult = await client.query(
         `SELECT COUNT(*) AS c FROM bets b JOIN market_outcomes mo ON b.outcome_id = mo.id WHERE mo.market_id = $1`,
         [marketId]
