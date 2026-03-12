@@ -134,7 +134,7 @@ export default function CreateMarketPage() {
                 }
                 disabled={createMarket.isPending}
                 rows={4}
-                className="w-full px-4 py-2 bg-surface-secondary border border-surface-light rounded-lg text-primary placeholder-secondary/50 focus:outline-none focus:border-[#154734]/50 transition-colors"
+                className="w-full px-4 py-2 rounded-lg bg-surface/50 border border-primary/20 text-primary placeholder-primary/40 transition-all duration-200 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 

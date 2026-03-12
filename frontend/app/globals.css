@@ -116,7 +116,20 @@ html.dark {
   }
 
   a:hover {
+    cursor: pointer;
     color: hsl(var(--color-primary) / 0.8);
+  }
+
+  /* Interactive elements - cursor pointer on hover */
+  button:not(:disabled):hover,
+  input[type="button"]:not(:disabled):hover,
+  input[type="submit"]:not(:disabled):hover,
+  input[type="reset"]:not(:disabled):hover,
+  [role="button"]:not(:disabled):hover,
+  [role="link"]:hover,
+  summary:hover,
+  label:hover {
+    cursor: pointer;
   }
 
   ::selection {

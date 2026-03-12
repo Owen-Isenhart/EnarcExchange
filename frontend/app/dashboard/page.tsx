@@ -111,7 +111,8 @@ export default function DashboardPage() {
                     <Zap className="h-4 w-4" />
                     <span className="text-sm">ROI</span>
                   </div>
-                  <p className={`text-2xl font-bold mono ${stats.roi >= 0 ? 'text-primary' : 'text-error'}`}>
+                  <p className="text-2xl font-bold mono"
+                    style={{ color: 'hsl(var(--color-secondary))' }}>
                     {formatPercent(stats.roi)}
                   </p>
                 </div>

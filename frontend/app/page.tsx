@@ -1,131 +1,77 @@
 /**
- * Home Page - Landing page
+ * Home Page - Landing page with animated sphere network background
  */
 
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
+import { NetworkSphereComponent } from '@/components/NetworkSphere';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { TrendingUp, Zap, BarChart3 } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
-      {/* Hero Section */}
-      <section className="section flex-1 flex items-center">
-        <div className="container-max">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h1 className="text-5xl font-bold leading-tight">
-                Predict the
-                <span className="gradient-text"> Future</span>
+    <div className="relative min-h-[calc(100vh-4rem)] flex overflow-hidden">
+      {/* Updated Background Container: 
+          Now covers 'inset-0' and 'w-full' to span the entire main area
+      */}
+      <div className="absolute inset-0 w-full pointer-events-none z-0">
+        <NetworkSphereComponent />
+        {/* Removed the previous gradient overlay that faded out the left side */}
+      </div>
+
+      {/* Content overlay */}
+      <div className="container-max relative z-20 flex items-center w-full h-full min-h-[calc(100vh-4rem)]">
+        <div className="max-w-xl lg:max-w-2xl w-full">
+          {/* Glassmorphic card */}
+          <div className="glass-dark p-8 md:p-12 rounded-2xl space-y-8 backdrop-blur-md shadow-2xl relative overflow-hidden">
+            <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-50 z-0 pointer-events-none" />
+            
+            <div className="space-y-4 relative z-10">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tighter">
+                UTD's Very Own <span style={{ color: 'hsl(var(--color-primary))' }}>Prediction Market</span>
               </h1>
-              <p className="text-xl text-white/70">
-                Trade on real-world outcomes using our advanced prediction market platform powered by LMSR technology
+              <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-lg">
+                Trade on anything UTD related using our prediction market platform. Think that the average grade of linear algebra this semester will be an A? Bet on it!
               </p>
-              <div className="flex gap-4">
-                {isAuthenticated ? (
-                  <>
-                    <Link href="/markets">
-                      <Button size="lg">
-                        <TrendingUp className="h-5 w-5" />
-                        Explore Markets
-                      </Button>
-                    </Link>
-                    <Link href="/dashboard">
-                      <Button size="lg" variant="secondary">
-                        Dashboard
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/signup">
-                      <Button size="lg">
-                        Get Started
-                      </Button>
-                    </Link>
-                    <Link href="/login">
-                      <Button size="lg" variant="secondary">
-                        Sign In
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
             </div>
 
-            <div className="hidden md:flex justify-center">
-              <div className="w-64 h-64 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/20 flex-center glow">
-                <BarChart3 className="h-24 w-24 text-primary/50" />
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
+              {isAuthenticated ? (
+                <>
+                  <Link href="/markets">
+                    <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+                      <TrendingUp className="h-5 w-5 mr-2" />
+                      Explore Markets
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard">
+                    <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                      Dashboard
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/signup">
+                    <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-shadow">
+                      Get Started
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button size="lg" variant="secondary" className="w-full sm:w-auto glass hover:bg-surface-secondary/50 border-white/10">
+                      Sign In
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="section bg-primary/5">
-        <div className="container-max">
-          <h2 className="text-3xl font-bold text-center mb-12">Why EnarcExchange?</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, idx) => (
-              <div
-                key={idx}
-                className="glass p-8 rounded-lg space-y-4 hover:bg-primary/10 transition-all"
-              >
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-semibold">{feature.title}</h3>
-                <p className="text-secondary">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      {!isAuthenticated && (
-        <section className="section">
-          <div className="container-max">
-            <div className="glass-dark p-12 rounded-lg text-center space-y-6">
-              <h2 className="text-3xl font-bold">Ready to start trading?</h2>
-              <p className="text-xl text-secondary max-w-2xl mx-auto">
-                Join thousands of predictors making informed decisions on real-world events
-              </p>
-              <Link href="/signup">
-                <Button size="lg">
-                  <Zap className="h-5 w-5" />
-                  Create Free Account
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+      </div>
     </div>
   );
 }
-
-const features = [
-  {
-    icon: <TrendingUp className="h-6 w-6 text-primary" />,
-    title: 'Real-Time Markets',
-    description: 'Trade on hundreds of live prediction markets with real-time pricing',
-  },
-  {
-    icon: <Zap className="h-6 w-6 text-secondary" />,
-    title: 'Automated Pricing',
-    description: 'Dynamic LMSR-powered pricing ensures optimal liquidity and fair odds',
-  },
-  {
-    icon: <BarChart3 className="h-6 w-6 text-primary" />,
-    title: 'Track Portfolio',
-    description: 'Monitor positions, P&L, and detailed statistics across all markets',
-  },
-];
