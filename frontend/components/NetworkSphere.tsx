@@ -4,6 +4,29 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
+ * Helper to get HSL color from CSS variable
+ */
+function getCssVarColor(varName: string, defaultHex: number): THREE.Color {
+  if (typeof window === 'undefined') return new THREE.Color(defaultHex);
+  const val = getComputedStyle(document.body).getPropertyValue(varName).trim() || 
+              getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+              
+  if (!val) {
+    console.warn(`NetworkSphere: CSS variable ${varName} not found, falling back to`, defaultHex);
+    return new THREE.Color(defaultHex);
+  }
+  
+  const parts = val.split(' ').map(p => parseFloat(p.replace('%', '')));
+  console.log(`NetworkSphere: Parsed ${varName} as`, parts);
+  
+  if (parts.length >= 3) {
+    return new THREE.Color().setHSL(parts[0] / 360, parts[1] / 100, parts[2] / 100);
+  }
+  console.warn(`NetworkSphere: CSS variable ${varName} had invalid format: ${val}, falling back`);
+  return new THREE.Color(defaultHex);
+}
+
+/**
  * NetworkSphere - 3D visualization component
  * Creates a sphere network with nodes, connecting lines, and ripple animations
  * Uses project's color variables adapted to Three.js
@@ -22,6 +45,7 @@ class NetworkSphere {
   rippleDuration: number;
   baseColor: THREE.Color;
   pulseColor: THREE.Color;
+  private observer: MutationObserver | null = null;
 
   constructor(container: HTMLCanvasElement) {
     this.nodeCount = 1000;
@@ -38,6 +62,20 @@ class NetworkSphere {
 
     this.initScene(container);
     this.initNodesAndLines();
+    this.updateColors();
+
+    this.observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class' || mutation.attributeName === 'style') {
+          console.log('NetworkSphere: Theme change detected, updating colors', document.body.className);
+          this.updateColors();
+        }
+      });
+    });
+    // Next-themes usually applies class to html or body
+    this.observer.observe(document.documentElement, { attributes: true });
+    this.observer.observe(document.body, { attributes: true });
+
     this.addLights();
     this.animate();
 
@@ -45,6 +83,23 @@ class NetworkSphere {
     setInterval(() => this.triggerRandomPulse(), 400);
 
     window.addEventListener('resize', () => this.onWindowResize());
+  }
+
+  private updateColors() {
+    const primaryColor = getCssVarColor('--color-primary', 0x00ff41);
+    this.baseColor = primaryColor.clone(); // The base node is fully the primary accent color
+    this.pulseColor = getCssVarColor('--color-secondary', 0xff8c00);
+    
+    console.log('NetworkSphere Updated Colors:', {
+      primaryHex: primaryColor.getHexString(),
+      baseHex: this.baseColor.getHexString(),
+      pulseHex: this.pulseColor.getHexString()
+    });
+
+    if (this.lines) {
+      (this.lines.material as THREE.LineBasicMaterial).color.copy(primaryColor);
+      (this.lines.material as THREE.LineBasicMaterial).opacity = 0.3; // Make lines more visible too
+    }
   }
 
   private initScene(container: HTMLCanvasElement) {
@@ -73,9 +128,9 @@ class NetworkSphere {
 
   private initNodesAndLines() {
     const nodeGeometry = new THREE.SphereGeometry(0.065, 6, 6);
-    const nodeMaterial = new THREE.MeshPhongMaterial({
-      shininess: 80,
-      specular: 0x222222,
+    // Using MeshBasicMaterial so it's fully bright and doesn't get shadowed out by lights
+    const nodeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
     });
 
     this.nodes = new THREE.InstancedMesh(nodeGeometry, nodeMaterial, this.nodeCount);
@@ -157,7 +212,7 @@ class NetworkSphere {
     this.ripples.push({
       origin: pos,
       startTime: performance.now() / 1000,
-      color: new THREE.Color().setHSL(0.08 + Math.random() * 0.05, 1, 0.5),
+      color: this.pulseColor.clone(),
     });
   }
 
@@ -218,6 +273,9 @@ class NetworkSphere {
 
   public dispose() {
     this.renderer.dispose();
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 }
 
