@@ -29,15 +29,14 @@ function getCssVarColor(varName: string, defaultHex: number): THREE.Color {
 /**
  * NetworkSphere - 3D visualization component
  * Creates a sphere network with nodes, connecting lines, and ripple animations
- * Uses project's color variables adapted to Three.js
  */
 class NetworkSphere {
-  scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera;
-  renderer: THREE.WebGLRenderer;
-  networkGroup: THREE.Group;
-  nodes: THREE.InstancedMesh;
-  lines: THREE.LineSegments;
+  scene!: THREE.Scene;
+  camera!: THREE.PerspectiveCamera;
+  renderer!: THREE.WebGLRenderer;
+  networkGroup!: THREE.Group;
+  nodes!: THREE.InstancedMesh;
+  lines!: THREE.LineSegments;
   nodeCount: number;
   sphereRadius: number;
   ripples: Array<any>;
@@ -54,10 +53,7 @@ class NetworkSphere {
     this.rippleSpeed = 7.0;
     this.rippleDuration = 2.0;
 
-    // Use project's theme colors adapted to HSL
-    // Primary neon green (129 100% 50% -> #00ff41)
-    this.baseColor = new THREE.Color(0x00ff41).multiplyScalar(0.15); // Dimmed for base
-    // Secondary neon orange (33 100% 50% -> #ff8c00)
+    this.baseColor = new THREE.Color(0x00ff41).multiplyScalar(0.15);
     this.pulseColor = new THREE.Color(0xff8c00);
 
     this.initScene(container);
@@ -67,19 +63,16 @@ class NetworkSphere {
     this.observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'class' || mutation.attributeName === 'style') {
-          console.log('NetworkSphere: Theme change detected, updating colors', document.body.className);
           this.updateColors();
         }
       });
     });
-    // Next-themes usually applies class to html or body
     this.observer.observe(document.documentElement, { attributes: true });
     this.observer.observe(document.body, { attributes: true });
 
     this.addLights();
     this.animate();
 
-    // High frequency pulses (every 400ms)
     setInterval(() => this.triggerRandomPulse(), 400);
 
     window.addEventListener('resize', () => this.onWindowResize());
@@ -87,26 +80,25 @@ class NetworkSphere {
 
   private updateColors() {
     const primaryColor = getCssVarColor('--color-primary', 0x00ff41);
-    this.baseColor = primaryColor.clone(); // The base node is fully the primary accent color
+    this.baseColor = primaryColor.clone();
     this.pulseColor = getCssVarColor('--color-secondary', 0xff8c00);
     
-    console.log('NetworkSphere Updated Colors:', {
-      primaryHex: primaryColor.getHexString(),
-      baseHex: this.baseColor.getHexString(),
-      pulseHex: this.pulseColor.getHexString()
-    });
-
     if (this.lines) {
       (this.lines.material as THREE.LineBasicMaterial).color.copy(primaryColor);
-      (this.lines.material as THREE.LineBasicMaterial).opacity = 0.3; // Make lines more visible too
+      (this.lines.material as THREE.LineBasicMaterial).opacity = 0.3;
     }
   }
 
   private initScene(container: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
+    
+    // Updated to use container dimensions
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
+
     this.camera = new THREE.PerspectiveCamera(
       60,
-      window.innerWidth / window.innerHeight,
+      width / height,
       0.1,
       1000
     );
@@ -117,28 +109,23 @@ class NetworkSphere {
       alpha: true,
       canvas: container,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setClearColor(0x000000, 0); // Transparent background
+    this.renderer.setClearColor(0x000000, 0);
 
-    // Group to hold both nodes and lines so they rotate together
     this.networkGroup = new THREE.Group();
     this.scene.add(this.networkGroup);
   }
 
   private initNodesAndLines() {
     const nodeGeometry = new THREE.SphereGeometry(0.065, 6, 6);
-    // Using MeshBasicMaterial so it's fully bright and doesn't get shadowed out by lights
-    const nodeMaterial = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-    });
+    const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
     this.nodes = new THREE.InstancedMesh(nodeGeometry, nodeMaterial, this.nodeCount);
 
     const dummy = new THREE.Object3D();
     const nodePositions: THREE.Vector3[] = [];
 
-    // 1. Generate Fibonacci Sphere Positions
     for (let i = 0; i < this.nodeCount; i++) {
       const phi = Math.acos(-1 + (2 * i) / this.nodeCount);
       const theta = Math.sqrt(this.nodeCount * Math.PI) * phi;
@@ -150,7 +137,6 @@ class NetworkSphere {
       );
 
       nodePositions.push(pos);
-
       dummy.position.copy(pos);
       dummy.lookAt(0, 0, 0);
       dummy.updateMatrix();
@@ -159,9 +145,8 @@ class NetworkSphere {
       this.nodes.setColorAt(i, this.baseColor);
     }
 
-    // 2. Generate Connecting Lines (Proximity based)
     const linePositions: number[] = [];
-    const maxConnectDistance = 0.85; // Distance threshold for connections
+    const maxConnectDistance = 0.85;
 
     for (let i = 0; i < this.nodeCount; i++) {
       for (let j = i + 1; j < this.nodeCount; j++) {
@@ -174,10 +159,7 @@ class NetworkSphere {
     }
 
     const lineGeometry = new THREE.BufferGeometry();
-    lineGeometry.setAttribute(
-      'position',
-      new THREE.Float32BufferAttribute(linePositions, 3)
-    );
+    lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
 
     const lineMaterial = new THREE.LineBasicMaterial({
       color: 0x00ff41,
@@ -187,7 +169,6 @@ class NetworkSphere {
     });
 
     this.lines = new THREE.LineSegments(lineGeometry, lineMaterial);
-
     this.networkGroup.add(this.nodes);
     this.networkGroup.add(this.lines);
   }
@@ -195,7 +176,6 @@ class NetworkSphere {
   private addLights() {
     const ambient = new THREE.AmbientLight(0x203020, 1.5);
     this.scene.add(ambient);
-
     const pointLight = new THREE.PointLight(0xffffff, 0.8);
     pointLight.position.set(10, 10, 10);
     this.scene.add(pointLight);
@@ -205,9 +185,7 @@ class NetworkSphere {
     const idx = Math.floor(Math.random() * this.nodeCount);
     const matrix = new THREE.Matrix4();
     this.nodes.getMatrixAt(idx, matrix);
-
-    const pos = new THREE.Vector3();
-    pos.setFromMatrixPosition(matrix);
+    const pos = new THREE.Vector3().setFromMatrixPosition(matrix);
 
     this.ripples.push({
       origin: pos,
@@ -226,14 +204,12 @@ class NetworkSphere {
     for (let i = 0; i < this.nodeCount; i++) {
       this.nodes.getMatrixAt(i, dummyMatrix);
       nodePos.setFromMatrixPosition(dummyMatrix);
-
       let activeColor = this.baseColor.clone();
 
       this.ripples.forEach((ripple) => {
         const elapsed = now - ripple.startTime;
         const currentRippleRadius = elapsed * this.rippleSpeed;
         const distFromOrigin = nodePos.distanceTo(ripple.origin);
-
         const waveThickness = 2.0;
         const diff = Math.abs(distFromOrigin - currentRippleRadius);
 
@@ -241,41 +217,36 @@ class NetworkSphere {
           const intensity = 1.0 - diff / waveThickness;
           const lifeProgress = 1.0 - elapsed / this.rippleDuration;
           const strength = intensity * Math.pow(lifeProgress, 1.5);
-
           activeColor.lerp(ripple.color, strength);
         }
       });
-
       this.nodes.setColorAt(i, activeColor);
     }
 
-    if (this.nodes.instanceColor) {
-      this.nodes.instanceColor.needsUpdate = true;
-    }
+    if (this.nodes.instanceColor) this.nodes.instanceColor.needsUpdate = true;
   }
 
   private onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    // Updated to use the actual client dimensions of the canvas
+    const width = this.renderer.domElement.clientWidth;
+    const height = this.renderer.domElement.clientHeight;
+
+    this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height);
   }
 
   private animate = () => {
     requestAnimationFrame(this.animate);
-
-    // Rotate the entire group (nodes and lines together)
     this.networkGroup.rotation.y += 0.002;
     this.networkGroup.rotation.x += 0.001;
-
     this.updateRipples();
     this.renderer.render(this.scene, this.camera);
   };
 
   public dispose() {
     this.renderer.dispose();
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+    if (this.observer) this.observer.disconnect();
   }
 }
 
@@ -283,31 +254,21 @@ interface NetworkSphereComponentProps {
   className?: string;
 }
 
-/**
- * React wrapper for NetworkSphere Three.js component
- */
 export function NetworkSphereComponent({ className = '' }: NetworkSphereComponentProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sphereRef = useRef<NetworkSphere | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
-
-    // Initialize Three.js sphere
     sphereRef.current = new NetworkSphere(canvasRef.current);
-
-    return () => {
-      // Cleanup
-      if (sphereRef.current) {
-        sphereRef.current.dispose();
-      }
-    };
+    return () => sphereRef.current?.dispose();
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className={`fixed inset-0 -z-10 ${className}`}
+      // Changed 'fixed' to 'absolute' to contain it within the main content area
+      className={`absolute inset-0 -z-10 ${className}`}
       style={{ display: 'block', width: '100%', height: '100%' }}
     />
   );

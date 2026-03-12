@@ -15,28 +15,27 @@ export default function Home() {
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] flex overflow-hidden">
-      {/* Animated sphere network background (positioned to the right) */}
-      <div className="absolute inset-y-0 right-0 w-full lg:w-2/3 pointer-events-none z-0">
+      {/* Updated Background Container: 
+          Now covers 'inset-0' and 'w-full' to span the entire main area
+      */}
+      <div className="absolute inset-0 w-full pointer-events-none z-0">
         <NetworkSphereComponent />
-        {/* Gradient fade to seamlessly blend the sphere into the background */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent z-10" />
+        {/* Removed the previous gradient overlay that faded out the left side */}
       </div>
 
-      {/* Content overlay - split layout */}
+      {/* Content overlay */}
       <div className="container-max relative z-20 flex items-center w-full h-full min-h-[calc(100vh-4rem)]">
         <div className="max-w-xl lg:max-w-2xl w-full">
-          {/* Glassmorphic container to improve readability */}
+          {/* Glassmorphic card */}
           <div className="glass-dark p-8 md:p-12 rounded-2xl space-y-8 backdrop-blur-md shadow-2xl relative overflow-hidden">
-            {/* Subtle inner glow for the glass card */}
             <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-50 z-0 pointer-events-none" />
             
             <div className="space-y-4 relative z-10">
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tighter">
-                Predict the
-                <span className="gradient-text block mt-2"> Future</span>
+                UTD's Very Own <span style={{ color: 'hsl(var(--color-primary))' }}>Prediction Market</span>
               </h1>
               <p className="text-lg md:text-xl text-text-secondary leading-relaxed max-w-lg">
-                Trade on real-world outcomes using our advanced prediction market platform powered by LMSR technology
+                Trade on anything UTD related using our prediction market platform. Think that the average grade of linear algebra this semester will be an A? Bet on it!
               </p>
             </div>
 
