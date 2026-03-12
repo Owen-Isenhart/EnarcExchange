@@ -97,9 +97,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-white/70">
+          <p className="mt-6 text-center text-sm text-secondary">
             Don't have an account?{' '}
-            <Link href="/signup" className="text-[#154734] hover:text-[#154734]/80">
+            <Link href="/signup" className="text-primary hover:text-primary/80">
               Sign Up
             </Link>
           </p>
