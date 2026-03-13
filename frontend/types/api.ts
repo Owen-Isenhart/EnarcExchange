@@ -61,6 +61,9 @@ export interface CreateMarketRequest {
   start_time?: string;
   end_time?: string;
   liquidity_parameter?: number;
+  outcomes?: Array<{
+    description: string;
+  }>;
 }
 
 export interface UpdateMarketRequest {

@@ -44,6 +44,51 @@ const marketsService = {
     return result.rows[0];
   },
 
+  createMarketWithOutcomes: async (name, description, createdBy, startTime, endTime, liquidityParameter, outcomes) => {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      // Create market
+      const marketResult = await client.query(
+        `INSERT INTO markets (name, description, created_by, start_time, end_time, liquidity_parameter, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [name, description || null, createdBy, startTime, endTime, liquidityParameter || 100.0, "open"]
+      );
+      const market = marketResult.rows[0];
+
+      // Create outcomes
+      const outcomeIds = [];
+      for (const outcome of outcomes) {
+        const outcomeResult = await client.query(
+          `INSERT INTO market_outcomes (market_id, description)
+           VALUES ($1, $2)
+           RETURNING id`,
+          [market.id, outcome.description]
+        );
+        outcomeIds.push(outcomeResult.rows[0].id);
+      }
+
+      // Seed market with equal quantities (default: 1 per outcome)
+      const initialQuantity = 1.0 / outcomes.length;
+      for (const outcomeId of outcomeIds) {
+        await client.query(
+          `UPDATE market_outcomes SET quantity = $1 WHERE id = $2`,
+          [initialQuantity, outcomeId]
+        );
+      }
+
+      await client.query("COMMIT");
+      return market;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
   updateMarket: async (id, updateFields) => {
     let paramCount = 1;
     const values = [];

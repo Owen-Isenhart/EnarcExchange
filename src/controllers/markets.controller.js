@@ -89,7 +89,7 @@ const getMarketQuote = async (req, res) => {
 };
 
 const createMarket = async (req, res) => {
-  const { name, description, start_time, end_time, liquidity_parameter } = req.body;
+  const { name, description, start_time, end_time, liquidity_parameter, outcomes } = req.body;
   const created_by = req.user.id;
 
   if (!validators.nonEmptyString(name)) {
@@ -131,21 +131,39 @@ const createMarket = async (req, res) => {
 
   if (liquidity_parameter !== undefined && liquidity_parameter !== null) {
     const lp = parseFloat(liquidity_parameter);
-    if (!Number.isFinite(lp) || lp < 0 || lp > 1) {
+    if (!Number.isFinite(lp) || lp < 0 || lp > 10000) {
       return res.status(400).json({
-        error: "liquidity_parameter must be a number between 0 and 1",
+        error: "liquidity_parameter must be a number between 0 and 10000",
+      });
+    }
+  }
+
+  // Validate outcomes
+  if (!Array.isArray(outcomes) || outcomes.length < 2) {
+    return res.status(400).json({ error: "Market must have at least 2 outcomes" });
+  }
+
+  for (let i = 0; i < outcomes.length; i++) {
+    const outcome = outcomes[i];
+    if (!outcome.description || !validators.nonEmptyString(outcome.description)) {
+      return res.status(400).json({ error: `Outcome ${i + 1} description is required` });
+    }
+    if (outcome.description.length < 1 || outcome.description.length > 500) {
+      return res.status(400).json({
+        error: `Outcome ${i + 1} description must be between 1 and 500 characters`,
       });
     }
   }
 
   try {
-    const market = await marketsService.createMarket(
+    const market = await marketsService.createMarketWithOutcomes(
       name,
       description,
       created_by,
       startTime,
       endTime,
-      liquidity_parameter
+      liquidity_parameter,
+      outcomes
     );
     res.status(201).json(market);
   } catch (err) {

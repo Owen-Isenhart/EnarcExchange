@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/store/uiStore';
+import { X, Plus } from 'lucide-react';
 
 export default function CreateMarketPage() {
   const router = useRouter();
@@ -24,7 +25,11 @@ export default function CreateMarketPage() {
     description: '',
     start_time: new Date().toISOString().split('T')[0],
     end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    liquidity_parameter: 0.01,
+    liquidity_parameter: 100,
+    outcomes: [
+      { description: 'Yes' },
+      { description: 'No' },
+    ],
   });
 
   if (!user) {
@@ -51,6 +56,36 @@ export default function CreateMarketPage() {
     );
   }
 
+  const handleAddOutcome = () => {
+    setFormData({
+      ...formData,
+      outcomes: [...formData.outcomes, { description: '' }],
+    });
+  };
+
+  const handleRemoveOutcome = (index: number) => {
+    if (formData.outcomes.length <= 2) {
+      addNotification({
+        type: 'error',
+        message: 'Market must have at least 2 outcomes',
+      });
+      return;
+    }
+    setFormData({
+      ...formData,
+      outcomes: formData.outcomes.filter((_, i) => i !== index),
+    });
+  };
+
+  const handleOutcomeChange = (index: number, value: string) => {
+    const newOutcomes = [...formData.outcomes];
+    newOutcomes[index].description = value;
+    setFormData({
+      ...formData,
+      outcomes: newOutcomes,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,6 +93,22 @@ export default function CreateMarketPage() {
       addNotification({
         type: 'error',
         message: 'Market name is required',
+      });
+      return;
+    }
+
+    if (formData.outcomes.length < 2) {
+      addNotification({
+        type: 'error',
+        message: 'Market must have at least 2 outcomes',
+      });
+      return;
+    }
+
+    if (formData.outcomes.some(o => !o.description.trim())) {
+      addNotification({
+        type: 'error',
+        message: 'All outcomes must have descriptions',
       });
       return;
     }
@@ -77,6 +128,7 @@ export default function CreateMarketPage() {
         start_time: new Date(formData.start_time).toISOString(),
         end_time: new Date(formData.end_time).toISOString(),
         liquidity_parameter: formData.liquidity_parameter,
+        outcomes: formData.outcomes,
       },
       {
         onSuccess: (market: any) => {
@@ -178,20 +230,60 @@ export default function CreateMarketPage() {
               <Input
                 type="number"
                 min="0"
-                max="1"
-                step="0.01"
+                max="10000"
+                step="1"
                 value={formData.liquidity_parameter}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    liquidity_parameter: parseFloat(e.target.value) || 0.01,
+                    liquidity_parameter: parseFloat(e.target.value) || 100,
                   })
                 }
                 disabled={createMarket.isPending}
               />
               <p className="text-xs text-muted mt-1">
-                Value between 0 and 1. Higher values mean more liquidity (default: 0.01)
+                Higher values mean more liquidity (default: 100, max: 10000)
               </p>
+            </div>
+
+            {/* Outcomes */}
+            <div>
+              <label className="block text-sm font-medium text-primary mb-2">
+                Outcomes * (minimum 2)
+              </label>
+              <div className="space-y-3">
+                {formData.outcomes.map((outcome, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder={`Outcome ${index + 1}`}
+                      value={outcome.description}
+                      onChange={(e) => handleOutcomeChange(index, e.target.value)}
+                      disabled={createMarket.isPending}
+                      required
+                    />
+                    {formData.outcomes.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOutcome(index)}
+                        disabled={createMarket.isPending}
+                        className="px-3 py-2 rounded-lg bg-error/10 border border-error/20 text-error hover:bg-error/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleAddOutcome}
+                disabled={createMarket.isPending}
+                className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              >
+                <Plus className="h-4 w-4" />
+                Add Outcome
+              </button>
             </div>
 
             {/* Actions */}

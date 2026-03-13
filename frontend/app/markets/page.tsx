@@ -16,11 +16,11 @@ import { CardSkeleton } from '@/components/ui/Skeleton';
 import { TrendingUp } from 'lucide-react';
 
 export default function MarketsPage() {
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 300);
 
-  const { markets, meta, isLoading } = useMarkets(page);
+  // Fetch all markets at once with a large limit instead of pagination
+  const { markets, isLoading } = useMarkets(1, 10000);
 
   // Filter for only open markets and by search
   const openMarkets = markets.filter(
@@ -60,7 +60,6 @@ export default function MarketsPage() {
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
-          setPage(1);
         }}
       />
 
@@ -82,28 +81,6 @@ export default function MarketsPage() {
               </Link>
             ))}
           </div>
-
-          {/* Pagination */}
-          {meta && meta.canPaginate && (
-            <div className="flex justify-center gap-2 mt-8">
-              <Button
-                variant="secondary"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center gap-2 text-secondary">
-                Page {page}
-              </div>
-              <Button
-                variant="secondary"
-                onClick={() => setPage(page + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </>
       ) : (
         <Card>

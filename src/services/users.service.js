@@ -56,7 +56,7 @@ const usersService = {
 
   getUserStats: async (userId) => {
     const userResult = await pool.query(
-      `SELECT id, username, token_balance, created_at
+      `SELECT id, username, created_at
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -68,24 +68,31 @@ const usersService = {
     const betStats = await pool.query(
       `SELECT 
         COUNT(*) as total_bets,
-        SUM(amount) as total_wagered,
-        SUM(CASE WHEN is_settled THEN payout_amount ELSE 0 END) as total_won
+        COALESCE(SUM(CASE WHEN is_settled AND payout_amount > amount THEN 1 ELSE 0 END), 0) as wins,
+        COALESCE(SUM(CASE WHEN is_settled AND payout_amount < amount THEN 1 ELSE 0 END), 0) as losses,
+        COALESCE(SUM(CASE WHEN NOT is_settled THEN 1 ELSE 0 END), 0) as open_bets,
+        COALESCE(SUM(amount), 0) as total_wagered,
+        COALESCE(SUM(CASE WHEN is_settled THEN payout_amount - amount ELSE 0 END), 0) as total_won
        FROM bets WHERE user_id = $1`,
       [userId]
     );
 
-    const transactions = await pool.query(
-      `SELECT amount, reason, created_at
-       FROM transactions WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 10`,
-      [userId]
-    );
+    const stats = betStats.rows[0];
+    const totalWagered = parseFloat(stats.total_wagered) || 0;
+    const totalWon = parseFloat(stats.total_won) || 0;
+    const roi = totalWagered > 0 ? (totalWon / totalWagered) * 100 : 0;
 
     return {
-      user: userResult.rows[0],
-      stats: betStats.rows[0],
-      recent_transactions: transactions.rows,
+      user_id: userResult.rows[0].id,
+      username: userResult.rows[0].username,
+      total_bets: parseInt(stats.total_bets) || 0,
+      wins: parseInt(stats.wins) || 0,
+      losses: parseInt(stats.losses) || 0,
+      open_bets: parseInt(stats.open_bets) || 0,
+      total_wagered: totalWagered,
+      total_won: totalWon,
+      roi: roi,
+      created_at: userResult.rows[0].created_at,
     };
   },
 

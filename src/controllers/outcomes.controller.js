@@ -62,9 +62,9 @@ const createOutcome = async (req, res) => {
     return res.status(400).json({ error: "description is required" });
   }
 
-  if (description.length < 3 || description.length > 500) {
+  if (description.length < 1 || description.length > 500) {
     return res.status(400).json({
-      error: "description must be between 3 and 500 characters",
+      error: "description must be between 1 and 500 characters",
     });
   }
 
@@ -94,9 +94,9 @@ const updateOutcome = async (req, res) => {
     return res.status(400).json({ error: "description is required" });
   }
 
-  if (description.length < 3 || description.length > 500) {
+  if (description.length < 1 || description.length > 500) {
     return res.status(400).json({
-      error: "description must be between 3 and 500 characters",
+      error: "description must be between 1 and 500 characters",
     });
   }
 
